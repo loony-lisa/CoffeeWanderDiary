@@ -1,26 +1,8 @@
 // pixi-wrapper.js - 包装 PixiJS 确保它被正确打包
 
 // ===== 微信小游戏环境 Polyfill =====
-// 微信小程序的 DOM 元素没有标准的 remove() 方法，需要 polyfill
-if (typeof Element !== 'undefined' && !Element.prototype.remove) {
-  Element.prototype.remove = function() {
-    if (this.parentNode) {
-      this.parentNode.removeChild(this)
-    }
-  }
-}
-
-// 针对微信小游戏环境的额外 polyfill
-if (typeof GameGlobal !== 'undefined') {
-  // 确保 HTMLElement 也有 remove 方法
-  if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.remove) {
-    HTMLElement.prototype.remove = function() {
-      if (this.parentNode) {
-        this.parentNode.removeChild(this)
-      }
-    }
-  }
-}
+// 注意：这些 polyfill 在 weapp-adapter 加载后会被覆盖
+// 我们在文件末尾会再次应用 polyfill
 
 // 首先导入 PixiJS
 import * as PIXI from 'pixi.js'
