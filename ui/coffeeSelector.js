@@ -142,9 +142,8 @@ class CoffeeSelector {
   // Draw overlay
   drawOverlay(pixi, container) {
     const g = pixi.createGraphics()
-    g.beginFill(0x000000, 0.6)
-    g.drawRect(0, 0, this.screenWidth, this.screenHeight)
-    g.endFill()
+    g.rect(0, 0, this.screenWidth, this.screenHeight)
+    g.fill({ color: 0x000000, alpha: 0.6 })
     container.addChild(g)
   }
 
@@ -154,14 +153,9 @@ class CoffeeSelector {
     
     // White background
     const bg = pixi.createGraphics()
-    bg.beginFill(0xFFFFFF)
-    bg.drawRect(modalX, modalY, modalWidth, modalHeight)
-    bg.endFill()
-    
-    // Border
-    bg.lineStyle(1, 0xE0E0E0)
-    bg.drawRect(modalX, modalY, modalWidth, modalHeight)
-    bg.lineStyle(0)
+    bg.rect(modalX, modalY, modalWidth, modalHeight)
+    bg.fill(0xFFFFFF)
+    bg.stroke({ color: 0xE0E0E0, width: 1 })
     
     container.addChild(bg)
     
@@ -248,16 +242,14 @@ class CoffeeSelector {
     
     // List background
     const listBg = pixi.createGraphics()
-    listBg.beginFill(0xF5F5F5)
-    listBg.drawRect(listX, listY, listWidth, listHeight)
-    listBg.endFill()
+    listBg.rect(listX, listY, listWidth, listHeight)
+    listBg.fill(0xF5F5F5)
     container.addChild(listBg)
     
     // Create mask for clipping
     const mask = pixi.createGraphics()
-    mask.beginFill(0xFFFFFF)
-    mask.drawRect(listX, listY, listWidth, listHeight)
-    mask.endFill()
+    mask.rect(listX, listY, listWidth, listHeight)
+    mask.fill(0xFFFFFF)
     
     const contentContainer = new (pixi.getPIXI().Container)()
     contentContainer.mask = mask
@@ -295,15 +287,12 @@ class CoffeeSelector {
       
       // Item background
       const itemBg = pixi.createGraphics()
-      itemBg.beginFill(isSelected ? 0xE3F2FD : 0xFFFFFF)
-      itemBg.drawRect(listX + 5, y, listWidth - 10, itemHeight)
-      itemBg.endFill()
+      itemBg.rect(listX + 5, y, listWidth - 10, itemHeight)
+      itemBg.fill(isSelected ? 0xE3F2FD : 0xFFFFFF)
       
       // Selected border
       if (isSelected) {
-        itemBg.lineStyle(2, 0x2196F3)
-        itemBg.drawRect(listX + 5, y, listWidth - 10, itemHeight)
-        itemBg.lineStyle(0)
+        itemBg.stroke({ color: 0x2196F3, width: 2 })
       }
       
       contentContainer.addChild(itemBg)
@@ -343,11 +332,9 @@ class CoffeeSelector {
       
       // Checkbox border
       const checkbox = pixi.createGraphics()
-      checkbox.lineStyle(2, isSelected ? 0x2196F3 : 0xCCCCCC)
-      checkbox.beginFill(isSelected ? 0x2196F3 : 0xFFFFFF)
-      checkbox.drawRect(checkboxX, checkboxY, checkboxSize, checkboxSize)
-      checkbox.endFill()
-      checkbox.lineStyle(0)
+      checkbox.rect(checkboxX, checkboxY, checkboxSize, checkboxSize)
+      checkbox.fill(isSelected ? 0x2196F3 : 0xFFFFFF)
+      checkbox.stroke({ color: isSelected ? 0x2196F3 : 0xCCCCCC, width: 2 })
       contentContainer.addChild(checkbox)
       
       // Check mark
@@ -386,9 +373,8 @@ class CoffeeSelector {
       const scrollbarY = listY + (this.scrollOffset / this.maxScrollOffset) * (listHeight - scrollbarHeight)
       
       const scrollbar = pixi.createGraphics()
-      scrollbar.beginFill(0x000000, 0.2)
-      scrollbar.drawRect(listX + listWidth - 8, scrollbarY, 6, scrollbarHeight)
-      scrollbar.endFill()
+      scrollbar.rect(listX + listWidth - 8, scrollbarY, 6, scrollbarHeight)
+      scrollbar.fill({ color: 0x000000, alpha: 0.2 })
       container.addChild(scrollbar)
     }
     
@@ -412,9 +398,8 @@ class CoffeeSelector {
     const hasSelection = this.getSelectedCount() > 0
     
     const confirmBtn = pixi.createGraphics()
-    confirmBtn.beginFill(hasSelection ? 0x4CAF50 : 0xCCCCCC)
-    confirmBtn.drawRect(confirmBtnX, btnY, btnWidth, btnHeight)
-    confirmBtn.endFill()
+    confirmBtn.rect(confirmBtnX, btnY, btnWidth, btnHeight)
+    confirmBtn.fill(hasSelection ? 0x4CAF50 : 0xCCCCCC)
     container.addChild(confirmBtn)
     
     const confirmText = pixi.createText(`Confirm (${this.getSelectedCount()})`, {
@@ -431,9 +416,8 @@ class CoffeeSelector {
     const cancelBtnX = modalX + 30 + btnWidth
     
     const cancelBtn = pixi.createGraphics()
-    cancelBtn.beginFill(0xFF5722)
-    cancelBtn.drawRect(cancelBtnX, btnY, btnWidth, btnHeight)
-    cancelBtn.endFill()
+    cancelBtn.rect(cancelBtnX, btnY, btnWidth, btnHeight)
+    cancelBtn.fill(0xFF5722)
     container.addChild(cancelBtn)
     
     const cancelText = pixi.createText('Cancel', {

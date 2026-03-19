@@ -76,7 +76,7 @@
 	  var _wx$getSystemInfoSync = wx.getSystemInfoSync(),
 	      platform = _wx$getSystemInfoSync.platform;
 
-	  // 寮€鍙戣€呭伐鍏锋棤娉曢噸瀹氫箟 window
+	  // 开发者工具无法重定义 window
 
 
 	  if (platform === 'devtools') {
@@ -124,7 +124,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.WebGLRenderingContext = exports.CanvasRenderingContext2D = exports.cancelAnimationFrame = exports.requestAnimationFrame = exports.clearInterval = exports.clearTimeout = exports.setInterval = exports.setTimeout = exports.canvas = exports.location = exports.localStorage = exports.HTMLElement = exports.FileReader = exports.Audio = exports.Image = exports.WebSocket = exports.XMLHttpRequest = exports.navigator = exports.document = undefined;
+	exports.cancelAnimationFrame = exports.requestAnimationFrame = exports.clearInterval = exports.clearTimeout = exports.setInterval = exports.setTimeout = exports.canvas = exports.location = exports.localStorage = exports.HTMLElement = exports.FileReader = exports.Audio = exports.Image = exports.WebSocket = exports.XMLHttpRequest = exports.navigator = exports.document = undefined;
 
 	var _WindowProperties = __webpack_require__(2);
 
@@ -208,7 +208,7 @@
 	exports.location = _location3.default;
 
 
-	// 鏆撮湶鍏ㄥ眬鐨?canvas
+	// 暴露全局的 canvas
 	var canvas = new _Canvas2.default();
 
 	exports.canvas = canvas;
@@ -330,13 +330,13 @@
 	  return HTMLCanvasElement;
 	}(_HTMLElement4.default);
 
-	// 涓?PixiJS v8 鎻愪緵 CanvasRenderingContext2D 绫诲畾涔?
+
 	var CanvasRenderingContext2D = exports.CanvasRenderingContext2D = function CanvasRenderingContext2D() {
 	  _classCallCheck(this, CanvasRenderingContext2D);
 	  throw new Error('CanvasRenderingContext2D cannot be instantiated directly. Use canvas.getContext("2d").');
 	};
 
-	// 涓?PixiJS v8 鎻愪緵 WebGLRenderingContext 绫诲畾涔?
+
 	var WebGLRenderingContext = exports.WebGLRenderingContext = function WebGLRenderingContext() {
 	  _classCallCheck(this, WebGLRenderingContext);
 	  throw new Error('WebGLRenderingContext cannot be instantiated directly. Use canvas.getContext("webgl").');
@@ -416,12 +416,6 @@
 	  }, {
 	    key: 'focus',
 	    value: function focus() {}
-	  }, {
-	    key: 'remove',
-	    value: function remove() {
-	      // 微信小程序环境中没有真正的 DOM，此方法为空实现
-	      // 用于兼容 PixiJS v8 等库的 DOMPipe 调用
-	    }
 	  }, {
 	    key: 'clientWidth',
 	    get: function get() {
@@ -1197,7 +1191,7 @@
 
 	var _util = __webpack_require__(9);
 
-	// TODO 闇€瑕?wx.getSystemInfo 鑾峰彇鏇磋缁嗕俊鎭?
+	// TODO 需要 wx.getSystemInfo 获取更详细信息
 	var _wx$getSystemInfoSync = wx.getSystemInfoSync(),
 	    platform = _wx$getSystemInfoSync.platform;
 
@@ -1206,9 +1200,9 @@
 	  language: 'zh-cn',
 	  appVersion: '5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
 	  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Mobile/14E8301 MicroMessenger/6.6.0 MiniGame NetType/WIFI Language/zh_CN',
-	  onLine: true, // TODO 鐢?wx.getNetworkStateChange 鍜?wx.onNetworkStateChange 鏉ヨ繑鍥炵湡瀹炵殑鐘舵€?
+	  onLine: true, // TODO 用 wx.getNetworkStateChange 和 wx.onNetworkStateChange 来返回真实的状态
 
-	  // TODO 鐢?wx.getLocation 鏉ュ皝瑁?geolocation
+	  // TODO 用 wx.getLocation 来封装 geolocation
 	  geolocation: {
 	    getCurrentPosition: _util.noop,
 	    watchPosition: _util.noop,
@@ -1254,7 +1248,7 @@
 	}
 
 	var XMLHttpRequest = function () {
-	  // TODO 娌℃硶妯℃嫙 HEADERS_RECEIVED 鍜?LOADING 涓や釜鐘舵€?
+	  // TODO 没法模拟 HEADERS_RECEIVED 和 LOADING 两个状态
 	  function XMLHttpRequest() {
 	    _classCallCheck(this, XMLHttpRequest);
 
@@ -1283,7 +1277,7 @@
 	  }
 
 	  /*
-	   * TODO 杩欎竴鎵逛簨浠跺簲璇ユ槸鍦?XMLHttpRequestEventTarget.prototype 涓婇潰鐨?
+	   * TODO 这一批事件应该是在 XMLHttpRequestEventTarget.prototype 上面的
 	   */
 
 
@@ -1312,7 +1306,7 @@
 	    }
 	  }, {
 	    key: 'open',
-	    value: function open(method, url /* async, user, password 杩欏嚑涓弬鏁板湪灏忕▼搴忓唴涓嶆敮鎸?/) {
+	    value: function open(method, url /* async, user, password 这几个参数在小程序内不支持*/) {
 	      _method.set(this, method);
 	      _url.set(this, url);
 	      _changeReadyState.call(this, XMLHttpRequest.OPENED);
@@ -1375,7 +1369,7 @@
 	          fail: function fail(_ref2) {
 	            var errMsg = _ref2.errMsg;
 
-	            // TODO 瑙勮寖閿欒
+	            // TODO 规范错误
 	            if (errMsg.indexOf('abort') !== -1) {
 	              _triggerEvent.call(_this, 'abort');
 	            } else {
@@ -1423,7 +1417,7 @@
 	var _socketTask = new WeakMap();
 
 	var WebSocket = function () {
-	  // TODO 鏇存柊 binaryType
+	  // TODO 更新 binaryType
 	  // The connection is in the process of closing.
 	  // The connection is not yet open.
 	  function WebSocket(url) {
@@ -1484,8 +1478,8 @@
 	    });
 
 	    return this;
-	  } // TODO 灏忕▼搴忓唴鐩墠鑾峰彇涓嶅埌锛屽疄闄呬笂闇€瑕佹牴鎹湇鍔″櫒閫夋嫨鐨?sub-protocol 杩斿洖
-	  // TODO 鏇存柊 bufferedAmount
+	  } // TODO 小程序内目前获取不到，实际上需要根据服务器选择的 sub-protocol 返回
+	  // TODO 更新 bufferedAmount
 	  // The connection is closed or couldn't be opened.
 
 	  // The connection is open and ready to communicate.
@@ -1541,7 +1535,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	/*
-	 * TODO 浣跨敤 wx.readFile 鏉ュ皝瑁?FileReader
+	 * TODO 使用 wx.readFile 来封装 FileReader
 	 */
 	var FileReader = function () {
 	  function FileReader() {
@@ -1613,5 +1607,5 @@
 
 	exports.default = location;
 
-/***/ }),
+/***/ })
 /******/ ]);

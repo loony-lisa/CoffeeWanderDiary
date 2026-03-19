@@ -78,7 +78,9 @@ class PixiManager {
         resolution: this.dpr,
         autoDensity: true,
         backgroundColor: 0x000000,
-        antialias: false
+        antialias: false,
+                // 禁用 DOMPipe，避免微信小游戏环境中 remove() 方法不兼容的问题
+        dom: false
       })
       
       this.stage = this.app.stage

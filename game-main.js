@@ -175,10 +175,7 @@ function drawLoadingScreen() {
   const layer = pixiManager.getLayer('overlay')
   const PIXI = pixiManager.getPIXI()
   
-  const bg = pixiManager.createGraphics()
-  bg.beginFill(0x2C3E50)
-  bg.drawRect(0, 0, screenWidth, screenHeight)
-  bg.endFill()
+  const bg = pixiManager.createGraphics().rect(0, 0, screenWidth, screenHeight).fill(0x2C3E50)
   layer.addChild(bg)
   
   const text = pixiManager.createText('Loading...', {
@@ -207,25 +204,20 @@ function drawLoadingScreen() {
   const barY = screenHeight / 2 + 50
   
   const barBg = pixiManager.createGraphics()
-  barBg.beginFill(0x34495E)
-  barBg.drawRoundedRect(barX, barY, barWidth, barHeight, 5)
-  barBg.endFill()
+  barBg.roundRect(barX, barY, barWidth, barHeight, 5)
+  barBg.fill(0x34495E)
   layer.addChild(barBg)
   
   const fillWidth = progress / 100 * barWidth
   const barFill = pixiManager.createGraphics()
-  barFill.beginFill(0x3498DB)
-  barFill.drawRoundedRect(barX, barY, fillWidth, barHeight, 5)
-  barFill.endFill()
+  barFill.roundRect(barX, barY, fillWidth, barHeight, 5)
+  barFill.fill(0x3498DB)
   layer.addChild(barFill)
 }
 
 function drawErrorScreen() {
   const layer = pixiManager.getLayer('overlay')
-  const bg = pixiManager.createGraphics()
-  bg.beginFill(0x2C3E50)
-  bg.drawRect(0, 0, screenWidth, screenHeight)
-  bg.endFill()
+  const bg = pixiManager.createGraphics().rect(0, 0, screenWidth, screenHeight).fill(0x2C3E50)
   layer.addChild(bg)
   
   const icon = pixiManager.createText('⚠️', { fontSize: 48 })
@@ -265,11 +257,8 @@ function drawBackground() {
     sprite.height = screenHeight
     layer.addChild(sprite)
   } else {
-    const bg = pixiManager.createGraphics()
     const color = dateTime.isDaytime ? 0x87CEEB : 0x2C3E50
-    bg.beginFill(color)
-    bg.drawRect(0, 0, screenWidth, screenHeight)
-    bg.endFill()
+    const bg = pixiManager.createGraphics().rect(0, 0, screenWidth, screenHeight).fill(color)
     layer.addChild(bg)
   }
 }
@@ -290,12 +279,9 @@ function drawTopButtons() {
   
   buttons.forEach(btn => {
     const bg = pixiManager.createGraphics()
-    bg.beginFill(0xFFFFFF, 0.9)
-    bg.drawRoundedRect(btn.x, btn.y, btnSize, btnSize, 8)
-    bg.endFill()
-    bg.lineStyle(1, 0x000000, 0.1)
-    bg.drawRoundedRect(btn.x, btn.y, btnSize, btnSize, 8)
-    bg.lineStyle(0)
+    bg.roundRect(btn.x, btn.y, btnSize, btnSize, 8)
+    bg.fill({ color: 0xFFFFFF, alpha: 0.9 })
+    bg.stroke({ color: 0x000000, width: 1, alpha: 0.1 })
     layer.addChild(bg)
     
     const icon = pixiManager.createText(btn.icon, { fontSize: 24 })
@@ -322,12 +308,9 @@ function drawStatusBar() {
   const y = 15
   
   const bg = pixiManager.createGraphics()
-  bg.beginFill(0xFFFFFF, 0.9)
-  bg.drawRoundedRect(x, y, barWidth, barHeight, 10)
-  bg.endFill()
-  bg.lineStyle(1, 0x000000, 0.1)
-  bg.drawRoundedRect(x, y, barWidth, barHeight, 10)
-  bg.lineStyle(0)
+  bg.roundRect(x, y, barWidth, barHeight, 10)
+  bg.fill({ color: 0xFFFFFF, alpha: 0.9 })
+  bg.stroke({ color: 0x000000, width: 1, alpha: 0.1 })
   layer.addChild(bg)
   
   const items = [
@@ -405,17 +388,14 @@ function createButton(x, y, width, height, text, color) {
   const container = new PIXI.Container()
   
   const bg = pixiManager.createGraphics()
-  bg.beginFill(color)
-  bg.drawRoundedRect(0, 0, width, height, 10)
-  bg.endFill()
+  bg.roundRect(0, 0, width, height, 10)
+  bg.fill(color)
   
-  bg.beginFill(0x000000, 0.2)
-  bg.drawRoundedRect(0, 4, width, height, 10)
-  bg.endFill()
+  bg.roundRect(0, 4, width, height, 10)
+  bg.fill({ color: 0x000000, alpha: 0.2 })
   
-  bg.beginFill(color)
-  bg.drawRoundedRect(0, 0, width, height, 10)
-  bg.endFill()
+  bg.roundRect(0, 0, width, height, 10)
+  bg.fill(color)
   
   container.addChild(bg)
   

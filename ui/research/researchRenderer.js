@@ -7,25 +7,17 @@ class ResearchRenderer {
 
   // Draw overlay
   drawOverlay(pixi, container, screenWidth, screenHeight) {
-    const g = pixi.createGraphics()
-    g.beginFill(0x000000, 0.6)
-    g.drawRect(0, 0, screenWidth, screenHeight)
-    g.endFill()
+    const g = pixi.createGraphics().rect(0, 0, screenWidth, screenHeight).fill({ color: 0x000000, alpha: 0.6 })
     container.addChild(g)
   }
 
   // Draw modal background
   drawModalBackground(pixi, container, modalX, modalY, modalWidth, modalHeight) {
-    // White background
+    // White background with border
     const bg = pixi.createGraphics()
-    bg.beginFill(0xFFFFFF)
-    bg.drawRect(modalX, modalY, modalWidth, modalHeight)
-    bg.endFill()
-    
-    // Border
-    bg.lineStyle(1, 0xE0E0E0)
-    bg.drawRect(modalX, modalY, modalWidth, modalHeight)
-    bg.lineStyle(0)
+    bg.rect(modalX, modalY, modalWidth, modalHeight)
+    bg.fill(0xFFFFFF)
+    bg.stroke({ color: 0xE0E0E0, width: 1 })
     
     container.addChild(bg)
   }
@@ -77,17 +69,11 @@ class ResearchRenderer {
     container.addChild(titleText)
 
     // Outer frame background
-    const frame = pixi.createGraphics()
-    frame.beginFill(0xF5F5F5)
-    frame.drawRect(x + 10, y + 25, width - 20, height - 30)
-    frame.endFill()
+    const frame = pixi.createGraphics().rect(x + 10, y + 25, width - 20, height - 30).fill(0xF5F5F5)
     container.addChild(frame)
 
     // Create mask for clipping
-    const mask = pixi.createGraphics()
-    mask.beginFill(0xFFFFFF)
-    mask.drawRect(x + 10, y + 25, width - 20, height - 30)
-    mask.endFill()
+    const mask = pixi.createGraphics().rect(x + 10, y + 25, width - 20, height - 30).fill(0xFFFFFF)
 
     const contentContainer = new (pixi.getPIXI().Container)()
     contentContainer.mask = mask
@@ -130,20 +116,11 @@ class ResearchRenderer {
 
       const isSelected = selectedId === option.id
 
-      // Option background
+      // Option background with border
       const optBg = pixi.createGraphics()
-      optBg.beginFill(isSelected ? 0x667eea : 0xFFFFFF)
-      optBg.drawRect(optX, optY, cardWidth, cardHeight)
-      optBg.endFill()
-
-      // Border
-      if (isSelected) {
-        optBg.lineStyle(2, 0x764ba2)
-      } else {
-        optBg.lineStyle(1, 0xE0E0E0)
-      }
-      optBg.drawRect(optX, optY, cardWidth, cardHeight)
-      optBg.lineStyle(0)
+      optBg.rect(optX, optY, cardWidth, cardHeight)
+      optBg.fill(isSelected ? 0x667eea : 0xFFFFFF)
+      optBg.stroke({ color: isSelected ? 0x764ba2 : 0xE0E0E0, width: isSelected ? 2 : 1 })
 
       contentContainer.addChild(optBg)
 
@@ -187,10 +164,7 @@ class ResearchRenderer {
       const scrollbarHeight = (visibleHeight / contentHeight) * visibleHeight
       const scrollbarY = y + 25 + (scrollOffset / maxOffset) * (visibleHeight - scrollbarHeight)
 
-      const scrollbar = pixi.createGraphics()
-      scrollbar.beginFill(0x000000, 0.2)
-      scrollbar.drawRect(x + width - 18, scrollbarY, 6, scrollbarHeight)
-      scrollbar.endFill()
+      const scrollbar = pixi.createGraphics().rect(x + width - 18, scrollbarY, 6, scrollbarHeight).fill({ color: 0x000000, alpha: 0.2 })
       container.addChild(scrollbar)
     }
 
@@ -212,10 +186,7 @@ class ResearchRenderer {
     const btnY = y
 
     // Button background
-    const btn = pixi.createGraphics()
-    btn.beginFill(canStart ? 0x4CAF50 : 0xCCCCCC)
-    btn.drawRect(btnX, btnY, btnWidth, btnHeight)
-    btn.endFill()
+    const btn = pixi.createGraphics().rect(btnX, btnY, btnWidth, btnHeight).fill(canStart ? 0x4CAF50 : 0xCCCCCC)
     container.addChild(btn)
 
     // Button text
