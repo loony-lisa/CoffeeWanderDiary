@@ -1,0 +1,20 @@
+{
+  "name": "coffeewanderdiary",
+  "version": "1.0.0",
+  "description": "Game by yjceu",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && npm run copy-dist",
+    "copy-dist": "node -e \"const fs=require('fs'); fs.copyFileSync('dist/game.js', 'game.js'); fs.copyFileSync('dist/game.js.map', 'game.js.map'); console.log('Copied dist files to root');\"",
+    "preview": "vite preview"
+  },
+  "author": "yjceu",
+  "license": "ISC",
+  "dependencies": {
+    "pixi.js": "^8.17.1"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

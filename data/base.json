@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "bases": [
+    {
+      "id": "espresso",
+      "name": "意式浓缩",
+      "icon": "☕",
+      "description": "浓缩咖啡是一种通过高压热水快速萃取咖啡豆精华制成的、口感浓郁醇厚的意式咖啡基底。",
+      "grade": "base",
+      "tools": ["espresso_machine"],
+      "unlock": true
+    },
+    {
+      "id": "americano",
+      "name": "美式咖啡",
+      "icon": "🍮",
+      "description": "美式咖啡是浓缩咖啡加热水稀释，口感更清淡顺滑，接近黑咖啡。",
+      "grade": "select",
+      "tools": ["espresso_machine"],
+      "unlock": true
+    },
+    {
+      "id": "cold_brew",
+      "name": "冷萃咖啡",
+      "icon": "🧊",
+      "description": "用冷水长时间浸泡，口感顺滑、低酸、风味醇厚。",
+      "grade": "base",
+      "tools": ["cold_brew_pot"],
+      "unlock": false
+    },
+    {
+      "id": "pour_over",
+      "name": "手冲咖啡",
+      "icon": "☕",
+      "description": "用热水缓慢萃取的黑咖啡，口感干净、风味清晰，是很多精品咖啡的基底。",
+      "grade": "base",
+      "tools": ["pour_over_set"],
+      "unlock": false
+    }
+  ]
+}

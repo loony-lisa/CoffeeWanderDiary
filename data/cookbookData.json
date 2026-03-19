@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    {
+      "id": "ingredients",
+      "name": "食材",
+      "icon": "🥬",
+      "description": "制作咖啡所需的原材料"
+    },
+    {
+      "id": "tools",
+      "name": "工具",
+      "icon": "🔧",
+      "description": "制作和出售咖啡的器具"
+    },
+    {
+      "id": "coffees",
+      "name": "咖啡",
+      "icon": "☕",
+      "description": "各种风味的咖啡饮品"
+    }
+  ],
+  "grade": {
+    "base": {
+      "name": "基础",
+      "color": "#95A5A6",
+      "probability": 0.6
+    },
+    "select": {
+      "name": "精选",
+      "color": "#3498DB",
+      "probability": 0.3
+    },
+    "premium": {
+      "name": "高级",
+      "color": "#9B59B6",
+      "probability": 0.09
+    },
+    "legendary": {
+      "name": "传说",
+      "color": "#F39C12",
+      "probability": 0.01
+    }
+  }
+}
