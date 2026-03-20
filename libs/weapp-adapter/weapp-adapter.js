@@ -124,7 +124,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.cancelAnimationFrame = exports.requestAnimationFrame = exports.clearInterval = exports.clearTimeout = exports.setInterval = exports.setTimeout = exports.canvas = exports.location = exports.localStorage = exports.HTMLElement = exports.FileReader = exports.Audio = exports.Image = exports.WebSocket = exports.XMLHttpRequest = exports.navigator = exports.document = undefined;
+	exports.cancelAnimationFrame = exports.requestAnimationFrame = exports.clearInterval = exports.clearTimeout = exports.setInterval = exports.setTimeout = exports.canvas = exports.location = exports.localStorage = exports.HTMLVideoElement = exports.HTMLElement = exports.FileReader = exports.Audio = exports.Image = exports.WebSocket = exports.XMLHttpRequest = exports.navigator = exports.document = undefined;
 
 	var _WindowProperties = __webpack_require__(2);
 
@@ -292,7 +292,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.WebGLRenderingContext = exports.CanvasRenderingContext2D = exports.HTMLCanvasElement = exports.HTMLImageElement = undefined;
+	exports.WebGLRenderingContext = exports.CanvasRenderingContext2D = exports.HTMLVideoElement = exports.HTMLCanvasElement = exports.HTMLImageElement = undefined;
 
 	var _HTMLElement3 = __webpack_require__(5);
 
@@ -330,6 +330,17 @@
 	  return HTMLCanvasElement;
 	}(_HTMLElement4.default);
 
+	var HTMLVideoElement = exports.HTMLVideoElement = function (_HTMLElement3) {
+	  _inherits(HTMLVideoElement, _HTMLElement3);
+
+	  function HTMLVideoElement() {
+	    _classCallCheck(this, HTMLVideoElement);
+
+	    return _possibleConstructorReturn(this, (HTMLVideoElement.__proto__ || Object.getPrototypeOf(HTMLVideoElement)).call(this, 'video'));
+	  }
+
+	  return HTMLVideoElement;
+	}(_HTMLElement4.default);
 
 	var CanvasRenderingContext2D = exports.CanvasRenderingContext2D = function CanvasRenderingContext2D() {
 	  _classCallCheck(this, CanvasRenderingContext2D);
@@ -676,6 +687,9 @@
 
 	  canvas.type = 'canvas';
 
+	  // 修改原型链，使 Canvas 成为 HTMLCanvasElement 的实例
+	  // 这样 PixiJS 的 CanvasResource.test 可以正确识别
+	  canvas.__proto__ = new _constructor.HTMLCanvasElement();
 	  canvas.__proto__.__proto__ = new _HTMLElement2.default('canvas');
 
 	  var _getContext = canvas.getContext;

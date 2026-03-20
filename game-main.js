@@ -25,6 +25,11 @@ const coffeeSelector = new CoffeeSelector(screenWidth, screenHeight)
 let isGameReady = false
 let errorMessage = null
 
+// 脏检查机制 - 避免每帧重复渲染
+let needsRedraw = true
+let frameCount = 0
+const SKIP_FRAMES = 2  // 每 2 帧渲染一次 (30 FPS)，减少内存压力
+
 const bgImages = {
   day: null,
   night: null
@@ -58,8 +63,15 @@ async function initGame() {
     return
   }
   
-  canvas = pixiManager.getApp().canvas
-  canvas.getContext('2d')
+  console.log('PixiJS init returned successfully')
+  
+  canvas = pixiManager.getApp().view
+  console.log('Canvas obtained:', canvas)
+  console.log('Canvas size:', canvas.width, 'x', canvas.height)
+  
+  // 检查渲染器类型
+  const renderer = pixiManager.getApp().renderer
+  console.log('Renderer type:', renderer.type, '(1=WebGL, 2=Canvas)')
   
   bgImages.day = await loadTexture('data/sprites/bg/day_bg.png')
   bgImages.night = await loadTexture('data/sprites/bg/day_bg_2.png')
@@ -75,6 +87,7 @@ async function initGame() {
   
   dataLoader.onProgress((progress, file) => {
     console.log(`Loading: ${progress}% - ${file}`)
+    markDirty()  // 加载进度更新时重绘
   })
   
   dataLoader.onComplete(data => {
@@ -94,6 +107,7 @@ async function initGame() {
     }
     
     isGameReady = true
+    markDirty()  // 数据加载完成后重绘
     console.log('Game is ready!')
   })
   
@@ -104,6 +118,7 @@ async function initGame() {
     cookbookDataManager.loadUnlockProgress()
     cookbookUI.initData(cookbookDataManager)
     isGameReady = true
+    markDirty()  // 错误状态变化后重绘
   })
   
   dataLoader.loadAllData()
@@ -136,8 +151,23 @@ async function initGame() {
 
 function startGameLoop() {
   pixiManager.getApp().ticker.add(() => {
-    render()
+    frameCount++
+    // 跳过部分帧，降低渲染频率
+    if (frameCount % (SKIP_FRAMES + 1) !== 0) return
+    
+    // 只有在需要重绘时才渲染
+    if (needsRedraw || !isGameReady || errorMessage) {
+      render()
+      if (isGameReady && !errorMessage) {
+        needsRedraw = false
+      }
+    }
   })
+}
+
+// 标记需要重绘
+function markDirty() {
+  needsRedraw = true
 }
 
 function render() {
@@ -175,7 +205,10 @@ function drawLoadingScreen() {
   const layer = pixiManager.getLayer('overlay')
   const PIXI = pixiManager.getPIXI()
   
-  const bg = pixiManager.createGraphics().rect(0, 0, screenWidth, screenHeight).fill(0x2C3E50)
+  const bg = pixiManager.createGraphics()
+  bg.beginFill(0x2C3E50)
+  bg.drawRect(0, 0, screenWidth, screenHeight)
+  bg.endFill()
   layer.addChild(bg)
   
   const text = pixiManager.createText('Loading...', {
@@ -204,20 +237,25 @@ function drawLoadingScreen() {
   const barY = screenHeight / 2 + 50
   
   const barBg = pixiManager.createGraphics()
-  barBg.roundRect(barX, barY, barWidth, barHeight, 5)
-  barBg.fill(0x34495E)
+  barBg.beginFill(0x34495E)
+  barBg.drawRoundedRect(barX, barY, barWidth, barHeight, 5)
+  barBg.endFill()
   layer.addChild(barBg)
   
   const fillWidth = progress / 100 * barWidth
   const barFill = pixiManager.createGraphics()
-  barFill.roundRect(barX, barY, fillWidth, barHeight, 5)
-  barFill.fill(0x3498DB)
+  barFill.beginFill(0x3498DB)
+  barFill.drawRoundedRect(barX, barY, fillWidth, barHeight, 5)
+  barFill.endFill()
   layer.addChild(barFill)
 }
 
 function drawErrorScreen() {
   const layer = pixiManager.getLayer('overlay')
-  const bg = pixiManager.createGraphics().rect(0, 0, screenWidth, screenHeight).fill(0x2C3E50)
+  const bg = pixiManager.createGraphics()
+  bg.beginFill(0x2C3E50)
+  bg.drawRect(0, 0, screenWidth, screenHeight)
+  bg.endFill()
   layer.addChild(bg)
   
   const icon = pixiManager.createText('⚠️', { fontSize: 48 })
@@ -258,7 +296,10 @@ function drawBackground() {
     layer.addChild(sprite)
   } else {
     const color = dateTime.isDaytime ? 0x87CEEB : 0x2C3E50
-    const bg = pixiManager.createGraphics().rect(0, 0, screenWidth, screenHeight).fill(color)
+    const bg = pixiManager.createGraphics()
+    bg.beginFill(color)
+    bg.drawRect(0, 0, screenWidth, screenHeight)
+    bg.endFill()
     layer.addChild(bg)
   }
 }
@@ -279,9 +320,11 @@ function drawTopButtons() {
   
   buttons.forEach(btn => {
     const bg = pixiManager.createGraphics()
-    bg.roundRect(btn.x, btn.y, btnSize, btnSize, 8)
-    bg.fill({ color: 0xFFFFFF, alpha: 0.9 })
-    bg.stroke({ color: 0x000000, width: 1, alpha: 0.1 })
+    bg.beginFill(0xFFFFFF, 0.9)
+    bg.drawRoundedRect(btn.x, btn.y, btnSize, btnSize, 8)
+    bg.endFill()
+    bg.lineStyle(1, 0x000000, 0.1)
+    bg.drawRoundedRect(btn.x, btn.y, btnSize, btnSize, 8)
     layer.addChild(bg)
     
     const icon = pixiManager.createText(btn.icon, { fontSize: 24 })
@@ -308,9 +351,11 @@ function drawStatusBar() {
   const y = 15
   
   const bg = pixiManager.createGraphics()
-  bg.roundRect(x, y, barWidth, barHeight, 10)
-  bg.fill({ color: 0xFFFFFF, alpha: 0.9 })
-  bg.stroke({ color: 0x000000, width: 1, alpha: 0.1 })
+  bg.beginFill(0xFFFFFF, 0.9)
+  bg.drawRoundedRect(x, y, barWidth, barHeight, 10)
+  bg.endFill()
+  bg.lineStyle(1, 0x000000, 0.1)
+  bg.drawRoundedRect(x, y, barWidth, barHeight, 10)
   layer.addChild(bg)
   
   const items = [
@@ -388,14 +433,17 @@ function createButton(x, y, width, height, text, color) {
   const container = new PIXI.Container()
   
   const bg = pixiManager.createGraphics()
-  bg.roundRect(0, 0, width, height, 10)
-  bg.fill(color)
+  bg.beginFill(color)
+  bg.drawRoundedRect(0, 0, width, height, 10)
+  bg.endFill()
   
-  bg.roundRect(0, 4, width, height, 10)
-  bg.fill({ color: 0x000000, alpha: 0.2 })
+  bg.beginFill(0x000000, 0.2)
+  bg.drawRoundedRect(0, 4, width, height, 10)
+  bg.endFill()
   
-  bg.roundRect(0, 0, width, height, 10)
-  bg.fill(color)
+  bg.beginFill(color)
+  bg.drawRoundedRect(0, 0, width, height, 10)
+  bg.endFill()
   
   container.addChild(bg)
   
@@ -420,34 +468,34 @@ wx.onTouchStart(e => {
   touchStartX = touch.clientX
   touchStartY = touch.clientY
   
+  let handled = false
+  
   if (cookbookUI.isVisible() && cookbookUI.handleTouch(touchStartX, touchStartY)) {
-    return
-  }
-  
-  if (researchUI.isVisible() && researchUI.handleTouch(touchStartX, touchStartY)) {
-    return
-  }
-  
-  if (coffeeSelector.isVisible() && coffeeSelector.handleTouch(touchStartX, touchStartY)) {
-    return
-  }
-  
-  if (ui.topButtons) {
+    handled = true
+  } else if (researchUI.isVisible() && researchUI.handleTouch(touchStartX, touchStartY)) {
+    handled = true
+  } else if (coffeeSelector.isVisible() && coffeeSelector.handleTouch(touchStartX, touchStartY)) {
+    handled = true
+  } else if (ui.topButtons) {
     for (const btn of ui.topButtons) {
       if (pixiManager.hitTest(touchStartX, touchStartY, btn)) {
         handleTopButtonClick(btn.id)
-        return
+        handled = true
+        break
+      }
+    }
+  } else if (ui.buttons) {
+    for (const btn of ui.buttons) {
+      if (pixiManager.hitTest(touchStartX, touchStartY, btn)) {
+        handleMainButtonClick(btn.id)
+        handled = true
+        break
       }
     }
   }
   
-  if (ui.buttons) {
-    for (const btn of ui.buttons) {
-      if (pixiManager.hitTest(touchStartX, touchStartY, btn)) {
-        handleMainButtonClick(btn.id)
-        return
-      }
-    }
+  if (handled) {
+    markDirty()  // 触摸交互后标记需要重绘
   }
 })
 
@@ -461,6 +509,7 @@ function handleTopButtonClick(id) {
       researchUI.show()
       break
   }
+  markDirty()  // UI 状态变化后标记需要重绘
 }
 
 function handleMainButtonClick(id) {
@@ -477,10 +526,12 @@ function handleMainButtonClick(id) {
       coffeeSelector.show()
       break
   }
+  markDirty()  // UI 状态变化后标记需要重绘
 }
 
 gameState.onChange((key, value, oldValue) => {
   console.log(`Game state changed: ${key} = ${value}`)
+  markDirty()  // 游戏状态变化后标记需要重绘
 })
 
 wx.onHide(() => {

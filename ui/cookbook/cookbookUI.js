@@ -17,6 +17,7 @@ class CookbookUI {
     
     // Image cache for coffee sprites
     this.imageCache = new Map()
+    this.maxImageCacheSize = 30  // 限制图片缓存大小
     this.pendingRedraw = false
     
     // Interface size configuration
@@ -117,6 +118,17 @@ class CookbookUI {
     this.visible = false
     this.modalInfo = null
     this.detailModal.visible = false
+    
+    // 清理 container 释放内存
+    if (this.container) {
+      this.container.children.forEach(child => {
+        if (child && !child._destroyed) {
+          child.destroy({ children: true, texture: false, baseTexture: false })
+        }
+      })
+      this.container.removeChildren()
+      this.container = null
+    }
   }
   
   isVisible() {
@@ -151,7 +163,19 @@ class CookbookUI {
     
     // Get modal layer
     const layer = pixi.getLayer('modal')
-    this.container = new (pixi.getPIXI().Container)()
+    
+    // 复用 container 而不是每帧创建新的
+    if (!this.container) {
+      this.container = new (pixi.getPIXI().Container)()
+    } else {
+      // 清理旧内容，释放内存
+      this.container.children.forEach(child => {
+        if (child && !child._destroyed) {
+          child.destroy({ children: true, texture: false, baseTexture: false })
+        }
+      })
+      this.container.removeChildren()
+    }
     
     this.drawOverlay(pixi)
     this.drawModal(pixi)
@@ -168,8 +192,9 @@ class CookbookUI {
   
   drawOverlay(pixi) {
     const g = pixi.createGraphics()
-      .rect(0, 0, this.screenWidth, this.screenHeight)
-      .fill({ color: 0x000000, alpha: 0.6 })
+    g.beginFill(0x000000, 0.6)
+    g.drawRect(0, 0, this.screenWidth, this.screenHeight)
+    g.endFill()
     this.container.addChild(g)
   }
 
@@ -180,9 +205,10 @@ class CookbookUI {
     
     // White background
     const bg = pixi.createGraphics()
-    bg.rect(modalX, modalY, modalWidth, modalHeight)
-    bg.fill(0xFFFFFF)
-    bg.stroke({ color: 0xE0E0E0, width: 1 })
+    bg.lineStyle(1, 0xE0E0E0)
+    bg.beginFill(0xFFFFFF)
+    bg.drawRect(modalX, modalY, modalWidth, modalHeight)
+    bg.endFill()
     
     this.container.addChild(bg)
     
@@ -255,13 +281,15 @@ class CookbookUI {
       
       // Tab background
       const tabBg = pixi.createGraphics()
-      tabBg.rect(tabX, tabY, tabWidth, tabHeight)
-      tabBg.fill(isActive ? 0x667eea : 0xF5F5F5)
+      tabBg.beginFill(isActive ? 0x667eea : 0xF5F5F5)
+      tabBg.drawRect(tabX, tabY, tabWidth, tabHeight)
+      tabBg.endFill()
       
       // Active state underline
       if (isActive) {
-        tabBg.rect(tabX, tabY + tabHeight - 3, tabWidth, 3)
-        tabBg.fill(0x764ba2)
+        tabBg.beginFill(0x764ba2)
+        tabBg.drawRect(tabX, tabY + tabHeight - 3, tabWidth, 3)
+        tabBg.endFill()
       }
       
       // Tab text
@@ -299,8 +327,9 @@ class CookbookUI {
     
     // Content area background
     const contentBg = pixi.createGraphics()
-      .rect(modalX + 10, contentY, contentWidth, contentHeight)
-      .fill(0xFAFAFA)
+    contentBg.beginFill(0xFAFAFA)
+    contentBg.drawRect(modalX + 10, contentY, contentWidth, contentHeight)
+    contentBg.endFill()
     this.container.addChild(contentBg)
     
     // Draw grid items
@@ -332,8 +361,9 @@ class CookbookUI {
     
     // Create mask for clipping
     const mask = pixi.createGraphics()
-      .rect(modalX + 10, contentY, contentWidth, contentHeight)
-      .fill(0xFFFFFF)
+    mask.beginFill(0xFFFFFF)
+    mask.drawRect(modalX + 10, contentY, contentWidth, contentHeight)
+    mask.endFill()
     
     const contentContainer = new (pixi.getPIXI().Container)()
     contentContainer.mask = mask
@@ -383,8 +413,9 @@ class CookbookUI {
       const scrollbarY = contentY + (this.scrollState.offset / this.scrollState.maxOffset) * (contentHeight - scrollbarHeight)
       
       const scrollbar = pixi.createGraphics()
-        .rect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarHeight)
-        .fill({ color: 0x000000, alpha: 0.2 })
+      scrollbar.beginFill(0x000000, 0.2)
+      scrollbar.drawRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarHeight)
+      scrollbar.endFill()
       this.container.addChild(scrollbar)
     }
     
@@ -404,9 +435,10 @@ class CookbookUI {
     
     // Card background
     const card = pixi.createGraphics()
-    card.rect(x, y, width, height)
-    card.fill(isUnlocked ? 0xFFFFFF : 0xEEEEEE)
-    card.stroke({ color: isUnlocked ? 0xE0E0E0 : 0xCCCCCC, width: 1 })
+    card.lineStyle(1, isUnlocked ? 0xE0E0E0 : 0xCCCCCC)
+    card.beginFill(isUnlocked ? 0xFFFFFF : 0xEEEEEE)
+    card.drawRect(x, y, width, height)
+    card.endFill()
     
     container.addChild(card)
     
@@ -451,8 +483,9 @@ class CookbookUI {
   drawGridLockedItem(pixi, container, x, y, width, height) {
     // Semi-transparent overlay
     const overlay = pixi.createGraphics()
-      .rect(x, y, width, height)
-      .fill({ color: 0xC8C8C8, alpha: 0.3 })
+    overlay.beginFill(0xC8C8C8, 0.3)
+    overlay.drawRect(x, y, width, height)
+    overlay.endFill()
     
     // Lock icon
     const lockIcon = pixi.createText('🔒', { fontSize: 24 })
@@ -496,6 +529,16 @@ class CookbookUI {
   
   // Load coffee image
   loadCoffeeImage(itemId) {
+    // 限制缓存大小
+    if (this.imageCache.size >= this.maxImageCacheSize) {
+      const firstKey = this.imageCache.keys().next().value
+      const oldEntry = this.imageCache.get(firstKey)
+      if (oldEntry && oldEntry.texture && !oldEntry.texture._destroyed) {
+        oldEntry.texture.destroy(true)
+      }
+      this.imageCache.delete(firstKey)
+    }
+    
     const imagePath = `data/sprites/${itemId}.png`
     
     const cacheEntry = {
@@ -509,15 +552,21 @@ class CookbookUI {
     img.onload = () => {
       try {
         const PIXI = pixiManager.getPIXI()
-        const texture = PIXI.Texture.from(img)
-        texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST
+        // 使用 BaseImageResource 包装微信图片对象 (PixiJS v6 兼容)
+        const resource = new PIXI.BaseImageResource(img)
+        const baseTexture = new PIXI.BaseTexture(resource, {
+          width: img.width,
+          height: img.height
+        })
+        baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST
+        const texture = new PIXI.Texture(baseTexture)
         cacheEntry.texture = texture
         cacheEntry.loaded = true
         this.pendingRedraw = true
         console.log(`Coffee image loaded: ${itemId}`)
       } catch (e) {
         cacheEntry.error = true
-        console.warn(`Failed to create texture for: ${itemId}`)
+        console.warn(`Failed to create texture for: ${itemId}`, e)
       }
     }
     img.onerror = () => {
@@ -553,9 +602,10 @@ class CookbookUI {
   // Draw pink placeholder
   drawPinkPlaceholder(pixi, container, x, y, size) {
     const placeholder = pixi.createGraphics()
-    placeholder.rect(x, y, size, size)
-    placeholder.fill(0xFFB6C1)
-    placeholder.stroke({ color: 0xFF69B4, width: 1 })
+    placeholder.lineStyle(1, 0xFF69B4)
+    placeholder.beginFill(0xFFB6C1)
+    placeholder.drawRect(x, y, size, size)
+    placeholder.endFill()
     container.addChild(placeholder)
   }
 
@@ -646,15 +696,17 @@ class CookbookUI {
     
     // Darker overlay
     const overlay = pixi.createGraphics()
-      .rect(0, 0, this.screenWidth, this.screenHeight)
-      .fill({ color: 0x000000, alpha: 0.7 })
+    overlay.beginFill(0x000000, 0.7)
+    overlay.drawRect(0, 0, this.screenWidth, this.screenHeight)
+    overlay.endFill()
     this.container.addChild(overlay)
     
     // Modal background
     const bg = pixi.createGraphics()
-    bg.rect(detailX, detailY, detailWidth, detailHeight)
-    bg.fill(0xFFFFFF)
-    bg.stroke({ color: 0x667eea, width: 2 })
+    bg.lineStyle(2, 0x667eea)
+    bg.beginFill(0xFFFFFF)
+    bg.drawRect(detailX, detailY, detailWidth, detailHeight)
+    bg.endFill()
     this.container.addChild(bg)
     
     // Draw close button
@@ -672,8 +724,9 @@ class CookbookUI {
     const size = 30
     
     const circle = pixi.createGraphics()
-      .circle(closeBtnX + size / 2, closeBtnY + size / 2, size / 2)
-      .fill(0xFF6B6B)
+    circle.beginFill(0xFF6B6B)
+    circle.drawCircle(closeBtnX + size / 2, closeBtnY + size / 2, size / 2)
+    circle.endFill()
     
     const closeText = pixi.createText('✕', {
       fontSize: 16,
@@ -717,9 +770,10 @@ class CookbookUI {
     } else {
       // Draw placeholder
       const placeholder = pixi.createGraphics()
-      placeholder.rect(imageX, imageY, imageSize, imageSize)
-      placeholder.fill(0xFFB6C1)
-      placeholder.stroke({ color: 0xFF69B4, width: 2 })
+      placeholder.lineStyle(2, 0xFF69B4)
+      placeholder.beginFill(0xFFB6C1)
+      placeholder.drawRect(imageX, imageY, imageSize, imageSize)
+      placeholder.endFill()
       
       const icon = pixi.createText(item.icon || '☕', { fontSize: 48 })
       icon.anchor.set(0.5)

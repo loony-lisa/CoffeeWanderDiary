@@ -12,6 +12,14 @@ export class HTMLCanvasElement extends HTMLElement {
   }
 }
 
+// 为 PixiJS 提供 HTMLVideoElement 类定义
+// 微信小游戏中没有视频元素，但 PixiJS 需要这个类进行 instanceof 检查
+export class HTMLVideoElement extends HTMLElement {
+  constructor() {
+    super('video')
+  }
+}
+
 // 为 PixiJS v8 提供 CanvasRenderingContext2D 类定义
 // 微信小游戏中通过 canvas.getContext('2d') 获取的上下文对象
 export class CanvasRenderingContext2D {

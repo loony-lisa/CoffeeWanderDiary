@@ -83,6 +83,11 @@ class ResearchUI {
     this.uiElements = null
     this.scrollState.base.isDragging = false
     this.scrollState.flavor.isDragging = false
+    
+    // 清理 renderer 中的 container
+    if (this.renderer) {
+      this.renderer.cleanup()
+    }
   }
 
   isVisible() {

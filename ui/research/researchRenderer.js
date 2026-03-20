@@ -7,7 +7,10 @@ class ResearchRenderer {
 
   // Draw overlay
   drawOverlay(pixi, container, screenWidth, screenHeight) {
-    const g = pixi.createGraphics().rect(0, 0, screenWidth, screenHeight).fill({ color: 0x000000, alpha: 0.6 })
+    const g = pixi.createGraphics()
+    g.beginFill(0x000000, 0.6)
+    g.drawRect(0, 0, screenWidth, screenHeight)
+    g.endFill()
     container.addChild(g)
   }
 
@@ -15,9 +18,10 @@ class ResearchRenderer {
   drawModalBackground(pixi, container, modalX, modalY, modalWidth, modalHeight) {
     // White background with border
     const bg = pixi.createGraphics()
-    bg.rect(modalX, modalY, modalWidth, modalHeight)
-    bg.fill(0xFFFFFF)
-    bg.stroke({ color: 0xE0E0E0, width: 1 })
+    bg.lineStyle(1, 0xE0E0E0)
+    bg.beginFill(0xFFFFFF)
+    bg.drawRect(modalX, modalY, modalWidth, modalHeight)
+    bg.endFill()
     
     container.addChild(bg)
   }
@@ -69,11 +73,17 @@ class ResearchRenderer {
     container.addChild(titleText)
 
     // Outer frame background
-    const frame = pixi.createGraphics().rect(x + 10, y + 25, width - 20, height - 30).fill(0xF5F5F5)
+    const frame = pixi.createGraphics()
+    frame.beginFill(0xF5F5F5)
+    frame.drawRect(x + 10, y + 25, width - 20, height - 30)
+    frame.endFill()
     container.addChild(frame)
 
     // Create mask for clipping
-    const mask = pixi.createGraphics().rect(x + 10, y + 25, width - 20, height - 30).fill(0xFFFFFF)
+    const mask = pixi.createGraphics()
+    mask.beginFill(0xFFFFFF)
+    mask.drawRect(x + 10, y + 25, width - 20, height - 30)
+    mask.endFill()
 
     const contentContainer = new (pixi.getPIXI().Container)()
     contentContainer.mask = mask
@@ -118,9 +128,10 @@ class ResearchRenderer {
 
       // Option background with border
       const optBg = pixi.createGraphics()
-      optBg.rect(optX, optY, cardWidth, cardHeight)
-      optBg.fill(isSelected ? 0x667eea : 0xFFFFFF)
-      optBg.stroke({ color: isSelected ? 0x764ba2 : 0xE0E0E0, width: isSelected ? 2 : 1 })
+      optBg.lineStyle(isSelected ? 2 : 1, isSelected ? 0x764ba2 : 0xE0E0E0)
+      optBg.beginFill(isSelected ? 0x667eea : 0xFFFFFF)
+      optBg.drawRect(optX, optY, cardWidth, cardHeight)
+      optBg.endFill()
 
       contentContainer.addChild(optBg)
 
@@ -164,7 +175,10 @@ class ResearchRenderer {
       const scrollbarHeight = (visibleHeight / contentHeight) * visibleHeight
       const scrollbarY = y + 25 + (scrollOffset / maxOffset) * (visibleHeight - scrollbarHeight)
 
-      const scrollbar = pixi.createGraphics().rect(x + width - 18, scrollbarY, 6, scrollbarHeight).fill({ color: 0x000000, alpha: 0.2 })
+      const scrollbar = pixi.createGraphics()
+      scrollbar.beginFill(0x000000, 0.2)
+      scrollbar.drawRect(x + width - 18, scrollbarY, 6, scrollbarHeight)
+      scrollbar.endFill()
       container.addChild(scrollbar)
     }
 
@@ -186,7 +200,10 @@ class ResearchRenderer {
     const btnY = y
 
     // Button background
-    const btn = pixi.createGraphics().rect(btnX, btnY, btnWidth, btnHeight).fill(canStart ? 0x4CAF50 : 0xCCCCCC)
+    const btn = pixi.createGraphics()
+    btn.beginFill(canStart ? 0x4CAF50 : 0xCCCCCC)
+    btn.drawRect(btnX, btnY, btnWidth, btnHeight)
+    btn.endFill()
     container.addChild(btn)
 
     // Button text
@@ -217,35 +234,60 @@ class ResearchRenderer {
     const { modalX, modalY, modalWidth, modalHeight, selectAreaHeight } = this.config
     
     const layer = pixi.getLayer('modal')
-    const container = new (pixi.getPIXI().Container)()
+    
+    // 复用 container 而不是每帧创建新的
+    if (!this.container) {
+      this.container = new (pixi.getPIXI().Container)()
+    } else {
+      // 清理旧内容，释放内存
+      this.container.children.forEach(child => {
+        if (child && !child._destroyed) {
+          child.destroy({ children: true, texture: false, baseTexture: false })
+        }
+      })
+      this.container.removeChildren()
+    }
 
-    this.drawOverlay(pixi, container, screenWidth, screenHeight)
-    this.drawModalBackground(pixi, container, modalX, modalY, modalWidth, modalHeight)
-    this.drawTitle(pixi, container, modalX, modalY, modalWidth)
+    this.drawOverlay(pixi, this.container, screenWidth, screenHeight)
+    this.drawModalBackground(pixi, this.container, modalX, modalY, modalWidth, modalHeight)
+    this.drawTitle(pixi, this.container, modalX, modalY, modalWidth)
 
-    const closeBtn = this.drawCloseButton(pixi, container, modalX, modalY, modalWidth)
+    const closeBtn = this.drawCloseButton(pixi, this.container, modalX, modalY, modalWidth)
 
     const baseArea = this.drawScrollableSelectArea(
-      pixi, container, 'Coffee Base', researchData.getBaseOptions(), researchData.getSelectedBase(),
+      pixi, this.container, 'Coffee Base', researchData.getBaseOptions(), researchData.getSelectedBase(),
       modalX, modalY + 55, modalWidth, selectAreaHeight,
       scrollState.base.offset
     )
 
     const flavorArea = this.drawScrollableSelectArea(
-      pixi, container, 'Flavor', researchData.getFlavorOptions(), researchData.getSelectedFlavor(),
+      pixi, this.container, 'Flavor', researchData.getFlavorOptions(), researchData.getSelectedFlavor(),
       modalX, modalY + 55 + selectAreaHeight + 15, modalWidth, selectAreaHeight,
       scrollState.flavor.offset
     )
 
-    const startBtn = this.drawStartButton(pixi, container, modalX, modalY + modalHeight - 65, modalWidth, researchData.canStartResearch())
+    const startBtn = this.drawStartButton(pixi, this.container, modalX, modalY + modalHeight - 65, modalWidth, researchData.canStartResearch())
 
-    layer.addChild(container)
+    layer.addChild(this.container)
 
     return {
       closeBtn,
       baseArea: { ...baseArea, scrollKey: 'base' },
       flavorArea: { ...flavorArea, scrollKey: 'flavor' },
       startBtn
+    }
+  }
+  
+  // 清理方法，在 UI 隐藏时调用
+  cleanup() {
+    if (this.container) {
+      this.container.children.forEach(child => {
+        if (child && !child._destroyed) {
+          child.destroy({ children: true, texture: false, baseTexture: false })
+        }
+      })
+      this.container.removeChildren()
+      this.container = null
     }
   }
 }

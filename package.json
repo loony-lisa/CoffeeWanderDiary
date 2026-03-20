@@ -12,7 +12,8 @@
   "author": "yjceu",
   "license": "ISC",
   "dependencies": {
-    "pixi.js": "^8.17.1"
+    "@pixi/unsafe-eval": "^6.5.10",
+    "pixi.js": "^6.5.10"
   },
   "devDependencies": {
     "vite": "^6.0.0"
