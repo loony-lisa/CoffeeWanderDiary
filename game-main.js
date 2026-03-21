@@ -150,7 +150,9 @@ async function initGame() {
 }
 
 function startGameLoop() {
-  pixiManager.getApp().ticker.add(() => {
+  const app = pixiManager.getApp()
+  
+  app.ticker.add(() => {
     frameCount++
     // 跳过部分帧，降低渲染频率
     if (frameCount % (SKIP_FRAMES + 1) !== 0) return
@@ -161,6 +163,12 @@ function startGameLoop() {
       if (isGameReady && !errorMessage) {
         needsRedraw = false
       }
+    }
+    
+    // 关键修复：确保 WebGL 渲染器正确刷新
+    // 微信小游戏需要显式调用 render 来提交帧
+    if (app.renderer && app.renderer.type === 1) {  // 1 = WebGL
+      app.renderer.render(app.stage)
     }
   })
 }

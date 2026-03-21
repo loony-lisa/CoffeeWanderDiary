@@ -12,6 +12,8 @@
   "author": "yjceu",
   "license": "ISC",
   "dependencies": {
+    "@iro/interaction": "^1.3.0",
+    "@iro/wechat-adapter": "^1.2.5",
     "@pixi/unsafe-eval": "^6.5.10",
     "pixi.js": "^6.5.10"
   },

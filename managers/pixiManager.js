@@ -1,10 +1,8 @@
 // managers/pixiManager.js - PixiJS Manager for WeChat Mini Game
 // 使用 PixiJS v6 API
 
-// 加载微信小游戏适配器
-require('../libs/weapp-adapter/weapp-adapter.js')
-
 // ===== 微信小游戏环境 Polyfill =====
+// 注意：@iro/wechat-adapter 已在 game-entry.js 中通过 ESM 导入并执行
 var weappHTMLElement = typeof HTMLElement !== 'undefined' ? HTMLElement : null
 if (weappHTMLElement && !weappHTMLElement.prototype.remove) {
   weappHTMLElement.prototype.remove = function() {
@@ -57,11 +55,19 @@ if (typeof global !== 'undefined' && global.PIXI) {
 if (PIXI && PIXI.settings && PIXI.settings.ADAPTER) {
   const originalCreateCanvas = PIXI.settings.ADAPTER.createCanvas
   PIXI.settings.ADAPTER.createCanvas = function(width, height) {
-    // 使用 document.createElement 创建 Canvas，这样会被 weapp-adapter 处理
+    // 使用 document.createElement 创建 Canvas，这样会被 wechat-adapter 处理
     if (typeof document !== 'undefined' && document.createElement) {
       const canvas = document.createElement('canvas')
       canvas.width = width || 1
       canvas.height = height || 1
+      
+      // 确保 canvas 有 style 属性（PixiJS resize 方法需要）
+      if (!canvas.style) {
+        canvas.style = {}
+      }
+      canvas.style.width = canvas.width + 'px'
+      canvas.style.height = canvas.height + 'px'
+      
       return canvas
     }
     // 降级到原始方法
@@ -120,12 +126,85 @@ class PixiManager {
     this.dpr = Math.max(1, Math.floor(sysInfo.pixelRatio || 1))
     
     console.log(`PixiJS init: ${this.screenWidth}x${this.screenHeight}, DPR=${this.dpr}`)
+    console.log('System info:', JSON.stringify({
+      brand: sysInfo.brand,
+      model: sysInfo.model,
+      system: sysInfo.system,
+      platform: sysInfo.platform,
+      version: sysInfo.version,
+      SDKVersion: sysInfo.SDKVersion
+    }))
     
     try {
+      // 使用微信的 createCanvas 创建画布
       const canvas = wx.createCanvas()
       
+      // 关键修复：确保 Canvas 正确绑定到 HTMLCanvasElement 原型链
+      // 这样 PixiJS 的 WebGL 检测才能正确识别
+      if (typeof HTMLCanvasElement !== 'undefined' && !(canvas instanceof HTMLCanvasElement)) {
+        console.log('Binding canvas to HTMLCanvasElement prototype chain')
+        canvas.__proto__ = HTMLCanvasElement.prototype
+      }
+      
+      // 确保 Canvas 有 style 属性（PixiJS resize 方法需要）
+      if (!canvas.style) {
+        canvas.style = {
+          get width() { return canvas.width + 'px' },
+          get height() { return canvas.height + 'px' },
+          set width(val) { /* 忽略 */ },
+          set height(val) { /* 忽略 */ }
+        }
+      }
+      
+      // 确保 Canvas 有 addEventListener 方法（PixiJS 需要）
+      if (!canvas.addEventListener) {
+        if (typeof document !== 'undefined' && document.addEventListener) {
+          canvas.addEventListener = document.addEventListener.bind(document)
+          canvas.removeEventListener = document.removeEventListener.bind(document)
+        } else if (typeof window !== 'undefined' && window.addEventListener) {
+          canvas.addEventListener = window.addEventListener.bind(window)
+          canvas.removeEventListener = window.removeEventListener.bind(window)
+        }
+      }
+      
+      // 测试 WebGL 上下文是否可用
+      console.log('Testing WebGL context...')
+      const testGl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+      if (testGl) {
+        console.log('WebGL context created successfully, version:', testGl.getParameter(testGl.VERSION))
+        console.log('WebGL vendor:', testGl.getParameter(testGl.VENDOR))
+        console.log('WebGL renderer:', testGl.getParameter(testGl.RENDERER))
+      } else {
+        console.warn('WebGL context creation failed!')
+      }
+      
+      // 详细检测 PixiJS WebGL 支持问题的来源
+      console.log('=== Debugging PixiJS WebGL detection ===')
+      console.log('PIXI.settings:', PIXI.settings)
+      console.log('PIXI.settings.ADAPTER:', PIXI.settings.ADAPTER)
+      console.log('PIXI.settings.ADAPTER.getWebGLRenderingContext:', PIXI.settings.ADAPTER ? PIXI.settings.ADAPTER.getWebGLRenderingContext : 'undefined')
+      
+      if (PIXI.settings.ADAPTER && PIXI.settings.ADAPTER.getWebGLRenderingContext) {
+        const webglCtor = PIXI.settings.ADAPTER.getWebGLRenderingContext()
+        console.log('getWebGLRenderingContext() returned:', webglCtor)
+      }
+      
+      if (PIXI.settings.ADAPTER && PIXI.settings.ADAPTER.createCanvas) {
+        const testCanvas = PIXI.settings.ADAPTER.createCanvas()
+        console.log('ADAPTER.createCanvas() returned:', testCanvas)
+        const testGl2 = testCanvas.getContext('webgl', { stencil: true }) || testCanvas.getContext('experimental-webgl', { stencil: true })
+        console.log('ADAPTER canvas getContext with stencil:', testGl2)
+        if (testGl2) {
+          const attrs = testGl2.getContextAttributes()
+          console.log('WebGL context attributes:', attrs)
+          console.log('stencil attribute:', attrs ? attrs.stencil : 'undefined')
+        }
+      }
+      console.log('===========================================')
+      
       // PixiJS v6 API: 使用 Application 构造函数
-      this.app = new PIXI.Application({
+      // 关键配置：微信小游戏 WebGL 渲染需要这些参数
+      const appOptions = {
         view: canvas,
         width: this.screenWidth,
         height: this.screenHeight,
@@ -133,8 +212,31 @@ class PixiManager {
         autoDensity: true,
         backgroundColor: 0x87CEEB,
         antialias: false,
-        forceCanvas: false
-      })
+        forceCanvas: false,  // 强制使用 WebGL
+        preserveDrawingBuffer: true,  // 微信小游戏需要
+        powerPreference: 'high-performance',  // 请求高性能 GPU
+        transparent: false
+      }
+      
+      console.log('Creating PixiJS Application with options:', JSON.stringify({
+        width: appOptions.width,
+        height: appOptions.height,
+        resolution: appOptions.resolution,
+        forceCanvas: appOptions.forceCanvas,
+        preserveDrawingBuffer: appOptions.preserveDrawingBuffer
+      }))
+      
+      // 检查 PixiJS 是否支持 WebGL
+      // 注意：在微信环境中，isWebGLSupported 可能返回 false 即使 WebGL 可用
+      const isWebGLSupported = PIXI.utils.isWebGLSupported()
+      console.log('PIXI.utils.isWebGLSupported():', isWebGLSupported)
+      
+      // 如果 PixiJS 检测失败但我们测试成功，尝试强制创建
+      if (!isWebGLSupported && testGl) {
+        console.log('PixiJS detection failed but manual test passed, attempting to force WebGL...')
+      }
+      
+      this.app = new PIXI.Application(appOptions)
       
       this.stage = this.app.stage
       
@@ -151,7 +253,7 @@ class PixiManager {
       
       console.log('=== PixiJS Debug Info ===')
       console.log('PixiJS version:', PIXI.VERSION)
-      console.log('Renderer type:', this.app.renderer.type)
+      console.log('Renderer type:', this.app.renderer.type, '(1=WebGL, 2=Canvas)')
       console.log('Renderer:', this.app.renderer)
       console.log('Stage:', this.stage)
       console.log('Stage children count:', this.stage.children.length)
@@ -159,6 +261,20 @@ class PixiManager {
       console.log('Canvas size:', canvas.width, 'x', canvas.height)
       console.log('Layers:', Object.keys(this.layers))
       console.log('=========================')
+      
+      // 监听 WebGL 上下文丢失事件
+      const rendererGl = this.app.renderer.gl
+      if (rendererGl) {
+        console.log('WebGL context found, adding event listeners')
+        canvas.addEventListener('webglcontextlost', (e) => {
+          console.error('WebGL context lost!', e)
+          e.preventDefault()
+        }, false)
+        
+        canvas.addEventListener('webglcontextrestored', () => {
+          console.log('WebGL context restored')
+        }, false)
+      }
       
       console.log('PixiJS initialized successfully')
       return true

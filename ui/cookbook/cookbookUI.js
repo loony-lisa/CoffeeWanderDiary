@@ -552,18 +552,33 @@ class CookbookUI {
     img.onload = () => {
       try {
         const PIXI = pixiManager.getPIXI()
-        // 使用 BaseImageResource 包装微信图片对象 (PixiJS v6 兼容)
-        const resource = new PIXI.BaseImageResource(img)
-        const baseTexture = new PIXI.BaseTexture(resource, {
-          width: img.width,
-          height: img.height
+        
+        // 将图片绘制到 2 的幂次方尺寸的 canvas 上，避免 WebGL NPOT 纹理限制
+        const canvas = wx.createCanvas()
+        const origWidth = img.width || 1
+        const origHeight = img.height || 1
+        canvas.width = this.getNextPowerOfTwo(origWidth)
+        canvas.height = this.getNextPowerOfTwo(origHeight)
+        
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+        
+        // 使用 canvas 创建 BaseTexture，设置 wrapMode 为 CLAMP 以支持 NPOT 纹理
+        const baseTexture = new PIXI.BaseTexture(canvas, {
+          scaleMode: PIXI.SCALE_MODES.NEAREST,
+          wrapMode: PIXI.WRAP_MODES.CLAMP
         })
-        baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST
-        const texture = new PIXI.Texture(baseTexture)
+        
+        // 创建纹理，使用原始尺寸作为 frame
+        const texture = new PIXI.Texture(
+          baseTexture,
+          new PIXI.Rectangle(0, 0, origWidth, origHeight)
+        )
+        
         cacheEntry.texture = texture
         cacheEntry.loaded = true
         this.pendingRedraw = true
-        console.log(`Coffee image loaded: ${itemId}`)
+        console.log(`Coffee image loaded: ${itemId} (${origWidth}x${origHeight} -> ${canvas.width}x${canvas.height})`)
       } catch (e) {
         cacheEntry.error = true
         console.warn(`Failed to create texture for: ${itemId}`, e)
@@ -599,6 +614,13 @@ class CookbookUI {
     return false
   }
   
+  // 获取下一个 2 的幂次方
+  getNextPowerOfTwo(n) {
+    if (n <= 1) return 1
+    if ((n & (n - 1)) === 0) return n // 已经是 2 的幂次方
+    return Math.pow(2, Math.ceil(Math.log2(n)))
+  }
+
   // Draw pink placeholder
   drawPinkPlaceholder(pixi, container, x, y, size) {
     const placeholder = pixi.createGraphics()
