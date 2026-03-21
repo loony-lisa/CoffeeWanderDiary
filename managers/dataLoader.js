@@ -79,8 +79,8 @@ class DataLoader {
       { path: 'data/cookbookData.json', key: 'cookbook', weight: 15 },
       { path: 'data/ingredients.json', key: 'ingredients', weight: 15 },
       { path: 'data/tools.json', key: 'tools', weight: 15 },
-      { path: 'data/recipes.json', key: 'recipes', weight: 25 },
-      { path: 'project.config.json', key: 'config', weight: 15 }
+      { path: 'data/recipes.json', key: 'recipes', weight: 25 }
+      //{ path: 'project.config.json', key: 'config', weight: 15 }
     ]
 
     let totalWeight = filesToLoad.reduce((sum, f) => sum + f.weight, 0)

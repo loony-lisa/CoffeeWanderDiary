@@ -66,6 +66,7 @@ async function initGame() {
   console.log('PixiJS init returned successfully')
   
   canvas = pixiManager.getApp().view
+  //pixiManager.getApp().view = canvas
   console.log('Canvas obtained:', canvas)
   console.log('Canvas size:', canvas.width, 'x', canvas.height)
   

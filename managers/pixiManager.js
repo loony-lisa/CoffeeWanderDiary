@@ -136,6 +136,7 @@ class PixiManager {
     }))
     
     try {
+      /*
       // 使用微信的 createCanvas 创建画布
       const canvas = wx.createCanvas()
       
@@ -151,11 +152,11 @@ class PixiManager {
         canvas.style = {
           get width() { return canvas.width + 'px' },
           get height() { return canvas.height + 'px' },
-          set width(val) { /* 忽略 */ },
-          set height(val) { /* 忽略 */ }
+          set width(val) { },
+          set height(val) { }
         }
       }
-      
+      */
       // 确保 Canvas 有 addEventListener 方法（PixiJS 需要）
       if (!canvas.addEventListener) {
         if (typeof document !== 'undefined' && document.addEventListener) {
@@ -179,8 +180,7 @@ class PixiManager {
         antialias: false,
         forceCanvas: false,  // 强制使用 WebGL
         preserveDrawingBuffer: true,  // 微信小游戏需要
-        powerPreference: 'high-performance',  // 请求高性能 GPU
-        transparent: false
+        powerPreference: 'high-performance'  // 请求高性能 GPU
       }
       
       console.log('Creating PixiJS Application with options:', JSON.stringify({
