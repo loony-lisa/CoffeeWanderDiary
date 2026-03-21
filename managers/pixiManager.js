@@ -136,27 +136,6 @@ class PixiManager {
     }))
     
     try {
-      /*
-      // 使用微信的 createCanvas 创建画布
-      const canvas = wx.createCanvas()
-      
-      // 关键修复：确保 Canvas 正确绑定到 HTMLCanvasElement 原型链
-      // 这样 PixiJS 的 WebGL 检测才能正确识别
-      if (typeof HTMLCanvasElement !== 'undefined' && !(canvas instanceof HTMLCanvasElement)) {
-        console.log('Binding canvas to HTMLCanvasElement prototype chain')
-        canvas.__proto__ = HTMLCanvasElement.prototype
-      }
-      
-      // 确保 Canvas 有 style 属性（PixiJS resize 方法需要）
-      if (!canvas.style) {
-        canvas.style = {
-          get width() { return canvas.width + 'px' },
-          get height() { return canvas.height + 'px' },
-          set width(val) { },
-          set height(val) { }
-        }
-      }
-      */
       // 确保 Canvas 有 addEventListener 方法（PixiJS 需要）
       if (!canvas.addEventListener) {
         if (typeof document !== 'undefined' && document.addEventListener) {
@@ -206,32 +185,14 @@ class PixiManager {
       
       this.initialized = true
       
-      console.log('=== PixiJS Debug Info ===')
-      console.log('PixiJS version:', PIXI.VERSION)
-      console.log('Renderer type:', this.app.renderer.type, '(1=WebGL, 2=Canvas)')
-      console.log('Renderer:', this.app.renderer)
-      console.log('Stage:', this.stage)
-      console.log('Stage children count:', this.stage.children.length)
-      console.log('Canvas:', canvas)
-      console.log('Canvas size:', canvas.width, 'x', canvas.height)
-      console.log('Layers:', Object.keys(this.layers))
-      console.log('=========================')
-      
       // 监听 WebGL 上下文丢失事件
       const rendererGl = this.app.renderer.gl
       if (rendererGl) {
-        console.log('WebGL context found, adding event listeners')
         canvas.addEventListener('webglcontextlost', (e) => {
           console.error('WebGL context lost!', e)
           e.preventDefault()
         }, false)
-        
-        canvas.addEventListener('webglcontextrestored', () => {
-          console.log('WebGL context restored')
-        }, false)
       }
-      
-      console.log('PixiJS initialized successfully')
       return true
       
     } catch (error) {
@@ -463,20 +424,6 @@ class PixiManager {
     }
     this.textureCache.clear()
     this.initialized = false
-  }
-  
-  debugRender() {
-    console.log('=== Render Debug ===')
-    console.log('Renderer type:', this.app.renderer.type)
-    console.log('Renderer view:', this.app.renderer.view)
-    console.log('Stage visible:', this.stage.visible)
-    console.log('Stage alpha:', this.stage.alpha)
-    console.log('Stage children:', this.stage.children.length)
-    Object.keys(this.layers).forEach(key => {
-      const layer = this.layers[key]
-      console.log(`Layer ${key}: visible=${layer.visible}, alpha=${layer.alpha}, children=${layer.children.length}`)
-    })
-    console.log('===================')
   }
 }
 

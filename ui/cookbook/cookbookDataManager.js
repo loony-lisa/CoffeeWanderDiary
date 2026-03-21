@@ -39,7 +39,6 @@ class CookbookDataManager {
     }
     
     this.parseData(defaultData)
-    console.log('Successfully loaded embedded default data, version:', this.version)
   }
   
   // Load from cloud (supports hot update)
@@ -52,7 +51,6 @@ class CookbookDataManager {
             this.parseData(res.data)
             // Cache to local
             this.saveToLocal()
-            console.log('Successfully loaded cookbook data from cloud, version:', this.version)
             resolve(true)
           } else {
             reject(new Error('Invalid cloud data'))
@@ -141,8 +139,6 @@ class CookbookDataManager {
     
     this.unlockedItems.add(itemId)
     this.saveUnlockProgress()
-    
-    console.log(`Unlocked item: ${item.name}`)
     return true
   }
   
@@ -230,7 +226,7 @@ class CookbookDataManager {
         }
       }
     } catch (e) {
-      console.log('Failed to check for updates:', e)
+      // Failed to check for updates, ignore
     }
     
     return { hasUpdate: false }
@@ -286,11 +282,9 @@ class CookbookDataManager {
     // Check if already exists
     const existingItem = this.getItem(coffeeData.id)
     if (existingItem) {
-      console.log(`Coffee ${coffeeData.name} already exists in cookbook`)
       // If exists but not unlocked, unlock it
       if (!existingItem.isUnlocked) {
         this.unlockItem(coffeeData.id)
-        console.log(`Unlocked existing coffee: ${coffeeData.name}`)
       }
       return true
     }
@@ -314,8 +308,6 @@ class CookbookDataManager {
     // Auto-unlock
     this.unlockedItems.add(coffeeData.id)
     this.saveUnlockProgress()
-    
-    console.log(`Successfully added new coffee to cookbook: ${newCoffee.name}`)
     return true
   }
   

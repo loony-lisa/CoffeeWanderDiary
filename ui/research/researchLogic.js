@@ -17,14 +17,11 @@ class ResearchLogic {
   // Execute research
   startResearch() {
     if (!this.data.canStartResearch()) {
-      console.log('Insufficient conditions, cannot start research')
       return null
     }
 
     const base = this.data.getSelectedBaseDetail()
     const flavor = this.data.getSelectedFlavorDetail()
-
-    console.log('Starting research:', base.name, '+', flavor.name)
 
     // Use recipe matcher to check if it matches known recipe
     const result = recipeMatcher.tryResearch(base.id, flavor.id)
@@ -51,7 +48,6 @@ class ResearchLogic {
       showCancel: false,
       confirmText: 'Got it',
       success: () => {
-        console.log('User closed result modal')
         // Call completion callback
         if (this.onResearchComplete) {
           this.onResearchComplete({

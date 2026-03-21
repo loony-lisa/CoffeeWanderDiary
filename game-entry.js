@@ -5,5 +5,3 @@ import './pixi-wrapper.js'
 
 // 2. 加载游戏主逻辑
 import './game-main.js'
-
-console.log('Game entry loaded')

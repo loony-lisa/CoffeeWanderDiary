@@ -12,7 +12,7 @@ const sysInfo = wx.getSystemInfoSync()
 const screenWidth = sysInfo.windowWidth
 const screenHeight = sysInfo.windowHeight
 
-console.log(`Screen: ${screenWidth}x${screenHeight}`)
+
 
 let canvas = null
 let touchStartX = 0
@@ -55,7 +55,6 @@ async function loadTexture(path) {
 }
 
 async function initGame() {
-  console.log('Starting game initialization...')
   
   if (!(await pixiManager.init())) {
     console.error('Failed to initialize PixiJS')
@@ -63,21 +62,14 @@ async function initGame() {
     return
   }
   
-  console.log('PixiJS init returned successfully')
-  
   canvas = pixiManager.getApp().view
-  //pixiManager.getApp().view = canvas
-  console.log('Canvas obtained:', canvas)
-  console.log('Canvas size:', canvas.width, 'x', canvas.height)
   
   bgImages.day = await loadTexture('data/sprites/bg/day_bg.png')
   bgImages.night = await loadTexture('data/sprites/bg/day_bg_2.png')
-  console.log('Background images loaded')
   
   try {
     statusIcons.bill = await loadTexture('data/sprites/icons/bill.png')
     statusIcons.diamond = await loadTexture('data/sprites/icons/diamond.png')
-    console.log('Status icons loaded')
   } catch (e) {
     console.warn('Status icons loading failed:', e)
   }
@@ -94,18 +86,15 @@ async function initGame() {
       cookbookDataManager.parseData(data.cookbook)
       cookbookDataManager.loadUnlockProgress()
       cookbookUI.initData(cookbookDataManager)
-      console.log('Cookbook data initialized')
     }
     
     if (data.recipes) {
       researchUI.setRecipesData(data.recipes)
       cookbookUI.setRecipesData(data.recipes)
-      console.log('Recipes data loaded')
     }
     
     isGameReady = true
     markDirty()  // 数据加载完成后重绘
-    console.log('Game is ready!')
   })
   
   dataLoader.onError(err => {
@@ -121,7 +110,6 @@ async function initGame() {
   dataLoader.loadAllData()
   
   researchUI.setOnResearchComplete(result => {
-    console.log('Research completed:', result)
     if (result.success && result.recipe) {
       cookbookDataManager.addCoffeeFromRecipe(result.recipe)
       wx.showToast({
@@ -132,7 +120,6 @@ async function initGame() {
   })
   
   coffeeSelector.setOnConfirm(coffees => {
-    console.log('Selected coffees for sale:', coffees)
     wx.showToast({
       title: `Selling ${coffees.length} coffee(s)`,
       icon: 'none'
@@ -140,7 +127,7 @@ async function initGame() {
   })
   
   coffeeSelector.setOnCancel(() => {
-    console.log('Coffee selection cancelled')
+    // Selection cancelled
   })
   
   startGameLoop()
@@ -505,7 +492,6 @@ wx.onTouchStart(e => {
 })
 
 function handleTopButtonClick(id) {
-  console.log('Top button clicked:', id)
   switch (id) {
     case 'cookbook':
       cookbookUI.show()
@@ -518,7 +504,6 @@ function handleTopButtonClick(id) {
 }
 
 function handleMainButtonClick(id) {
-  console.log('Main button clicked:', id)
   switch (id) {
     case 'travel':
       const city = gameState.travelToNext()
@@ -535,17 +520,13 @@ function handleMainButtonClick(id) {
 }
 
 gameState.onChange((key, value, oldValue) => {
-  console.log(`Game state changed: ${key} = ${value}`)
   markDirty()  // 游戏状态变化后标记需要重绘
 })
 
 wx.onHide(() => {
-  console.log('App hidden, saving game state...')
   gameState.save()
   cookbookDataManager.saveUnlockProgress()
 })
 
 gameState.load()
 initGame()
-
-console.log('Game main loaded')

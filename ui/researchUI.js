@@ -70,7 +70,6 @@ class ResearchUI {
 
   // ========== State Control ==========
   show() {
-    console.log('ResearchUI.show() called')
     this.visible = true
     this.data.reset()
     this.scrollState.base.offset = 0
@@ -78,7 +77,6 @@ class ResearchUI {
   }
 
   hide() {
-    console.log('ResearchUI.hide() called')
     this.visible = false
     this.uiElements = null
     this.scrollState.base.isDragging = false
@@ -109,7 +107,6 @@ class ResearchUI {
     if (recipesData && recipesData.recipes && recipeMatcher) {
       recipeMatcher.loadRecipes(recipesData)
       recipeMatcher.loadUnlockedRecipes()
-      console.log('ResearchUI: Recipes data loaded successfully')
     }
   }
 
@@ -158,7 +155,6 @@ class ResearchUI {
         return true
 
       case 'select':
-        console.log(`Selected ${result.type === 'base' ? 'base' : 'flavor'}:`, result.id)
         return true
 
       case 'startScroll':

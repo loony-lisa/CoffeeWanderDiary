@@ -40,7 +40,6 @@ class ResearchData {
           icon: base.icon,
           desc: base.description
         }))
-      console.log('Loaded unlocked base options from base.json:', this.baseOptions.length)
     } else {
       console.warn('Failed to load base.json, using empty base options')
       this.baseOptions = []

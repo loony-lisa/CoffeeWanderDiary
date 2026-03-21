@@ -11,8 +11,6 @@ import Interaction from '@iro/interaction'
 import { install } from '@pixi/unsafe-eval'
 install(PIXI)
 
-console.log('PixiJS imported, version:', PIXI.VERSION)
-
 // 导出到全局变量（供其他 CommonJS 模块使用）
 if (typeof global !== 'undefined') {
   global.PIXI = PIXI
@@ -43,8 +41,6 @@ PIXI.extensions.add(
     type: [PIXI.ExtensionType.RendererPlugin, PIXI.ExtensionType.CanvasRendererPlugin]
   }
 )
-
-console.log('PixiJS interaction added.')
 
 // 同时导出 PIXI 供 ESM 使用
 export { PIXI }

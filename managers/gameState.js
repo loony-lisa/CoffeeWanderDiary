@@ -91,9 +91,7 @@ class GameState {
         isDaytime: this.isDaytime
       })
       
-      if (daytimeChanged) {
-        console.log(`Time changed: It's now ${this.isDaytime ? 'daytime' : 'nighttime'}, background switched to ${this.isDaytime ? 'orange' : 'purple'}`)
-      }
+      // Daytime changed, background will be updated by listener
     }
   }
   
