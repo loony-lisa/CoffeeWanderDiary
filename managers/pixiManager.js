@@ -167,41 +167,6 @@ class PixiManager {
         }
       }
       
-      // 测试 WebGL 上下文是否可用
-      console.log('Testing WebGL context...')
-      const testGl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
-      if (testGl) {
-        console.log('WebGL context created successfully, version:', testGl.getParameter(testGl.VERSION))
-        console.log('WebGL vendor:', testGl.getParameter(testGl.VENDOR))
-        console.log('WebGL renderer:', testGl.getParameter(testGl.RENDERER))
-      } else {
-        console.warn('WebGL context creation failed!')
-      }
-      
-      // 详细检测 PixiJS WebGL 支持问题的来源
-      console.log('=== Debugging PixiJS WebGL detection ===')
-      console.log('PIXI.settings:', PIXI.settings)
-      console.log('PIXI.settings.ADAPTER:', PIXI.settings.ADAPTER)
-      console.log('PIXI.settings.ADAPTER.getWebGLRenderingContext:', PIXI.settings.ADAPTER ? PIXI.settings.ADAPTER.getWebGLRenderingContext : 'undefined')
-      
-      if (PIXI.settings.ADAPTER && PIXI.settings.ADAPTER.getWebGLRenderingContext) {
-        const webglCtor = PIXI.settings.ADAPTER.getWebGLRenderingContext()
-        console.log('getWebGLRenderingContext() returned:', webglCtor)
-      }
-      
-      if (PIXI.settings.ADAPTER && PIXI.settings.ADAPTER.createCanvas) {
-        const testCanvas = PIXI.settings.ADAPTER.createCanvas()
-        console.log('ADAPTER.createCanvas() returned:', testCanvas)
-        const testGl2 = testCanvas.getContext('webgl', { stencil: true }) || testCanvas.getContext('experimental-webgl', { stencil: true })
-        console.log('ADAPTER canvas getContext with stencil:', testGl2)
-        if (testGl2) {
-          const attrs = testGl2.getContextAttributes()
-          console.log('WebGL context attributes:', attrs)
-          console.log('stencil attribute:', attrs ? attrs.stencil : 'undefined')
-        }
-      }
-      console.log('===========================================')
-      
       // PixiJS v6 API: 使用 Application 构造函数
       // 关键配置：微信小游戏 WebGL 渲染需要这些参数
       const appOptions = {
@@ -225,16 +190,6 @@ class PixiManager {
         forceCanvas: appOptions.forceCanvas,
         preserveDrawingBuffer: appOptions.preserveDrawingBuffer
       }))
-      
-      // 检查 PixiJS 是否支持 WebGL
-      // 注意：在微信环境中，isWebGLSupported 可能返回 false 即使 WebGL 可用
-      const isWebGLSupported = PIXI.utils.isWebGLSupported()
-      console.log('PIXI.utils.isWebGLSupported():', isWebGLSupported)
-      
-      // 如果 PixiJS 检测失败但我们测试成功，尝试强制创建
-      if (!isWebGLSupported && testGl) {
-        console.log('PixiJS detection failed but manual test passed, attempting to force WebGL...')
-      }
       
       this.app = new PIXI.Application(appOptions)
       

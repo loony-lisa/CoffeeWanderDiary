@@ -69,10 +69,6 @@ async function initGame() {
   console.log('Canvas obtained:', canvas)
   console.log('Canvas size:', canvas.width, 'x', canvas.height)
   
-  // 检查渲染器类型
-  const renderer = pixiManager.getApp().renderer
-  console.log('Renderer type:', renderer.type, '(1=WebGL, 2=Canvas)')
-  
   bgImages.day = await loadTexture('data/sprites/bg/day_bg.png')
   bgImages.night = await loadTexture('data/sprites/bg/day_bg_2.png')
   console.log('Background images loaded')
