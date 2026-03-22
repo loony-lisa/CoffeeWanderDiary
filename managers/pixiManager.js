@@ -75,27 +75,6 @@ if (PIXI && PIXI.settings && PIXI.settings.ADAPTER) {
   }
 }
 
-// 方法2: 注册自定义 CanvasResource 检测器
-if (PIXI && PIXI.resources && PIXI.resources.CanvasResource) {
-  const originalTest = PIXI.resources.CanvasResource.test
-  PIXI.resources.CanvasResource.test = function(source) {
-    // 原始检测
-    if (originalTest && originalTest(source)) {
-      return true
-    }
-    // 微信小游戏 Canvas 检测
-    // 微信 Canvas 有 type 属性且值为 'canvas'
-    if (source && source.type === 'canvas' && typeof source.getContext === 'function') {
-      return true
-    }
-    // 检查是否有 getContext 方法（Canvas 的特征）
-    if (source && typeof source.getContext === 'function') {
-      return true
-    }
-    return false
-  }
-}
-
 class PixiManager {
   constructor() {
     this.app = null

@@ -336,8 +336,8 @@ function drawTopButtons() {
   const startY = 15
   
   const buttons = [
-    { id: 'cookbook', icon: '📖', x: startX, y: startY },
-    { id: 'research', icon: '🔬', x: startX - btnSize - btnGap, y: startY }
+    { id: 'settings', icon: '⚙️', x: startX, y: startY },
+    { id: 'shop', icon: '🏪', x: startX, y: startY + btnSize + btnGap }
   ]
   
   ui.topButtons = []
@@ -440,26 +440,34 @@ function drawStatusBar() {
 
 function drawMainButtons() {
   const layer = pixiManager.getLayer('ui')
-  const btnWidth = (screenWidth - 60) / 2
-  const btnHeight = 50
-  const btnY = screenHeight - btnHeight - 30
+  const btnCount = 5
+  const btnGap = 12
+  const btnSize = 48  // 小方框按钮尺寸（稍微缩小以适应5个按钮）
+  const labelHeight = 20  // 文字标签高度
+  const totalWidth = btnCount * btnSize + (btnCount - 1) * btnGap
+  const startX = (screenWidth - totalWidth) / 2
+  const btnY = screenHeight - btnSize - labelHeight - 30
   
   const buttons = [
-    { id: 'travel', text: '🚗 Travel', color: 0x3498DB, x: 20 },
-    { id: 'sell', text: '☕ Sell Coffee', color: 0xE67E22, x: 30 + btnWidth }
+    { id: 'travel', icon: '🚗', label: '地图', color: 0x3498DB },
+    { id: 'sell', icon: '☕', label: '菜单', color: 0xE67E22 },
+    { id: 'research', icon: '🔬', label: '研发', color: 0x9B59B6 },
+    { id: 'cookbook', icon: '📖', label: '图鉴', color: 0x27AE60 },
+    { id: 'message', icon: '💬', label: '留言板', color: 0xF39C12 }
   ]
   
   ui.buttons = []
   
-  buttons.forEach(btn => {
-    const container = createButton(btn.x, btnY, btnWidth, btnHeight, btn.text, btn.color)
+  buttons.forEach((btn, index) => {
+    const x = startX + index * (btnSize + btnGap)
+    const container = createIconButton(x, btnY, btnSize, btn.icon, btn.label, btn.color)
     layer.addChild(container)
     ui.buttons.push({
       id: btn.id,
-      x: btn.x,
+      x: x,
       y: btnY,
-      width: btnWidth,
-      height: btnHeight
+      width: btnSize,
+      height: btnSize + labelHeight
     })
   })
 }
@@ -499,6 +507,48 @@ function createButton(x, y, width, height, text, color) {
   return container
 }
 
+function createIconButton(x, y, size, icon, label, color) {
+  const PIXI = pixiManager.getPIXI()
+  const container = new PIXI.Container()
+  const labelHeight = 20
+  
+  // 按钮背景（小方框）
+  const bg = pixiManager.createGraphics()
+  // 阴影
+  bg.beginFill(0x000000, 0.2)
+  bg.drawRoundedRect(0, 3, size, size, 10)
+  bg.endFill()
+  // 主体
+  bg.beginFill(color)
+  bg.drawRoundedRect(0, 0, size, size, 10)
+  bg.endFill()
+  
+  container.addChild(bg)
+  
+  // 图标
+  const iconText = pixiManager.createText(icon, { fontSize: 24 })
+  iconText.anchor.set(0.5)
+  iconText.x = size / 2
+  iconText.y = size / 2
+  container.addChild(iconText)
+  
+  // 文字标签（在按钮下方）
+  const labelText = pixiManager.createText(label, {
+    fontSize: 12,
+    fontWeight: 'bold',
+    fill: 0xFFFFFF
+  })
+  labelText.anchor.set(0.5, 0)
+  labelText.x = size / 2
+  labelText.y = size + 4
+  container.addChild(labelText)
+  
+  container.x = x
+  container.y = y
+  
+  return container
+}
+
 wx.onTouchStart(e => {
   const touch = e.touches[0]
   touchStartX = touch.clientX
@@ -520,7 +570,9 @@ wx.onTouchStart(e => {
         break
       }
     }
-  } else if (ui.buttons) {
+  }
+  
+  if (!handled && ui.buttons) {
     for (const btn of ui.buttons) {
       if (pixiManager.hitTest(touchStartX, touchStartY, btn)) {
         handleMainButtonClick(btn.id)
@@ -537,11 +589,17 @@ wx.onTouchStart(e => {
 
 function handleTopButtonClick(id) {
   switch (id) {
-    case 'cookbook':
-      cookbookUI.show()
+    case 'settings':
+      wx.showToast({
+        title: '设置功能开发中',
+        icon: 'none'
+      })
       break
-    case 'research':
-      researchUI.show()
+    case 'shop':
+      wx.showToast({
+        title: '商店功能开发中',
+        icon: 'none'
+      })
       break
   }
   markDirty()  // UI 状态变化后标记需要重绘
@@ -558,6 +616,18 @@ function handleMainButtonClick(id) {
       break
     case 'sell':
       coffeeSelector.show()
+      break
+    case 'cookbook':
+      cookbookUI.show()
+      break
+    case 'research':
+      researchUI.show()
+      break
+    case 'message':
+      wx.showToast({
+        title: '留言板功能开发中',
+        icon: 'none'
+      })
       break
   }
   markDirty()  // UI 状态变化后标记需要重绘
