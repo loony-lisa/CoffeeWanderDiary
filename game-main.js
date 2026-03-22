@@ -68,8 +68,8 @@ async function initGame() {
   bgImages.night = await loadTexture('data/sprites/bg/night_bg.png')
   
   try {
-    statusIcons.bill = await loadTexture('data/sprites/icons/bill.png')
-    statusIcons.diamond = await loadTexture('data/sprites/icons/diamond.png')
+    statusIcons.coin = await loadTexture('data/sprites/icons/coin.png')
+    statusIcons.ruby = await loadTexture('data/sprites/icons/ruby.png')
   } catch (e) {
     console.warn('Status icons loading failed:', e)
   }
@@ -383,16 +383,28 @@ function drawStatusBar() {
   layer.addChild(bg)
   
   const items = [
-    { icon: '💰', value: gameState.getCoins(), x: x + 15 },
-    { icon: '💎', value: gameState.getRubies(), x: x + barWidth * 0.4 }
+    { icon: statusIcons.coin, value: gameState.getCoins(), x: x + 15 },
+    { icon: statusIcons.ruby, value: gameState.getRubies(), x: x + barWidth * 0.4 }
   ]
   
   items.forEach(item => {
-    const icon = pixiManager.createText(item.icon, { fontSize: 20 })
-    icon.anchor.set(0, 0.5)
-    icon.x = item.x
-    icon.y = y + barHeight / 2
-    layer.addChild(icon)
+    if (item.icon) {
+      // 使用图片精灵
+      const iconSprite = pixiManager.createSprite(item.icon)
+      iconSprite.anchor.set(0, 0.5)
+      iconSprite.x = item.x
+      iconSprite.y = y + barHeight / 2
+      iconSprite.width = 20
+      iconSprite.height = 20
+      layer.addChild(iconSprite)
+    } else {
+      // 降级到 emoji
+      const iconText = pixiManager.createText(item === items[0] ? '💰' : '💎', { fontSize: 20 })
+      iconText.anchor.set(0, 0.5)
+      iconText.x = item.x
+      iconText.y = y + barHeight / 2
+      layer.addChild(iconText)
+    }
     
     const text = pixiManager.createText(String(item.value), {
       fontSize: 16,
