@@ -144,7 +144,8 @@ class CoffeeSelector {
     const layer = pixi.getLayer('modal')
     
     // 复用 container 而不是每帧创建新的
-    if (!this.container) {
+    // 检查 container 是否为 null 或已被销毁（可能被 clearAllLayers 销毁）
+    if (!this.container || this.container._destroyed) {
       this.container = new (pixi.getPIXI().Container)()
     } else {
       // 清理旧内容，释放内存

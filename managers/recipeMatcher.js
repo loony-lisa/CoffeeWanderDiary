@@ -30,20 +30,25 @@ class RecipeMatcher {
     return true
   }
 
-  // Load from JSON file (async)
-  async loadFromFile(filePath) {
-    return new Promise((resolve, reject) => {
-      try {
-        const fs = wx.getFileSystemManager()
-        const data = fs.readFileSync(`${wx.env.USER_DATA_PATH}/../${filePath}`, 'utf8')
-        const parsed = JSON.parse(data)
-        this.loadRecipes(parsed)
-        resolve(true)
-      } catch (e) {
-        console.error('Failed to load recipes from file:', e.message)
-        reject(e)
-      }
-    })
+  // Load from dataLoader (preferred method)
+  // 从 dataLoader 获取数据，避免直接文件操作
+  loadFromDataLoader(dataLoader) {
+    if (dataLoader && dataLoader.hasData('recipes')) {
+      const data = dataLoader.getData('recipes')
+      this.loadRecipes(data)
+      return true
+    }
+    console.warn('Recipes data not available in dataLoader, using embedded data')
+    this.loadEmbeddedData()
+    return false
+  }
+
+  // Load from JSON file (deprecated, kept for compatibility)
+  // 微信小游戏真机环境不支持直接读取文件，请使用 loadFromDataLoader
+  loadFromFile(filePath) {
+    console.warn('loadFromFile is deprecated, use loadFromDataLoader instead')
+    this.loadEmbeddedData()
+    return true
   }
 
   // Use embedded default data as fallback

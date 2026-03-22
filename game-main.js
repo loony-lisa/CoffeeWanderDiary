@@ -65,7 +65,7 @@ async function initGame() {
   canvas = pixiManager.getApp().view
   
   bgImages.day = await loadTexture('data/sprites/bg/day_bg.png')
-  bgImages.night = await loadTexture('data/sprites/bg/day_bg_2.png')
+  bgImages.night = await loadTexture('data/sprites/bg/night_bg.png')
   
   try {
     statusIcons.bill = await loadTexture('data/sprites/icons/bill.png')
@@ -84,6 +84,27 @@ async function initGame() {
     
     if (data.cookbook) {
       cookbookDataManager.parseData(data.cookbook)
+      
+      // Merge items from separate data files
+      if (data.ingredients) {
+        cookbookDataManager.mergeItemsData('ingredients', data.ingredients)
+      }
+      if (data.tools) {
+        cookbookDataManager.mergeItemsData('tools', data.tools)
+      }
+      // coffees are added dynamically through research, but we can also load from recipes
+      if (data.recipes && data.recipes.recipes) {
+        // Convert recipes to coffee items format
+        const coffeeItems = data.recipes.recipes.map(recipe => ({
+          id: recipe.id,
+          name: recipe.name,
+          icon: recipe.icon || '☕',
+          description: recipe.description || 'A delicious coffee',
+          unlock: recipe.unlock  // Coffees are unlocked through research
+        }))
+        cookbookDataManager.mergeItemsData('coffees', { items: coffeeItems })
+      }
+      
       cookbookDataManager.loadUnlockProgress()
       cookbookUI.initData(cookbookDataManager)
     }
@@ -103,6 +124,17 @@ async function initGame() {
     cookbookDataManager.loadEmbeddedData()
     cookbookDataManager.loadUnlockProgress()
     cookbookUI.initData(cookbookDataManager)
+    
+    // Still try to load recipes for research UI even on error
+    // 从 dataLoader 获取已加载的数据，避免重复加载
+    const recipesData = dataLoader.getData('recipes')
+    if (recipesData) {
+      researchUI.setRecipesData(recipesData)
+      cookbookUI.setRecipesData(recipesData)
+    } else {
+      console.warn('Recipes data not available in dataLoader')
+    }
+    
     isGameReady = true
     markDirty()  // 错误状态变化后重绘
   })

@@ -67,6 +67,11 @@ class CookbookDataManager {
     this.version = data.version
     this.isLoaded = true
     
+    // Initialize items object if not exists
+    if (!this.data.items) {
+      this.data.items = {}
+    }
+    
     // Auto-unlock default unlocked items
     if (data.items) {
       Object.keys(data.items).forEach(category => {
@@ -77,6 +82,36 @@ class CookbookDataManager {
         })
       })
     }
+  }
+  
+  // Merge items from separate data files (ingredients.json, tools.json, etc.)
+  mergeItemsData(categoryId, itemsData) {
+    if (!this.isLoaded) {
+      console.warn('Cookbook data not loaded, cannot merge items')
+      return
+    }
+    
+    if (!itemsData || !itemsData.items || !Array.isArray(itemsData.items)) {
+      console.warn(`Invalid items data for category: ${categoryId}`)
+      return
+    }
+    
+    // Initialize items object if not exists
+    if (!this.data.items) {
+      this.data.items = {}
+    }
+    
+    // Merge items into the category
+    this.data.items[categoryId] = itemsData.items
+    
+    // Auto-unlock default unlocked items from merged data
+    itemsData.items.forEach(item => {
+      if (item.unlock && !this.unlockedItems.has(item.id)) {
+        this.unlockedItems.add(item.id)
+      }
+    })
+    
+    console.log(`Merged ${itemsData.items.length} items into category: ${categoryId}`)
   }
   
   // Save to local cache
