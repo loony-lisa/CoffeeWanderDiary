@@ -41,7 +41,7 @@ class ResearchData {
           desc: base.description
         }))
     } else {
-      console.warn('Failed to load base.json, using empty base options')
+      // Data not loaded yet, will retry when getBaseOptions is called
       this.baseOptions = []
     }
   }
