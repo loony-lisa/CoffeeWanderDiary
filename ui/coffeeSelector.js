@@ -583,7 +583,7 @@ class CoffeeSelector {
     confirmBtn.endFill()
     container.addChild(confirmBtn)
     
-    const confirmText = pixi.createText('确认', {
+    const confirmText = pixi.createText('开始营业', {
       fontSize: 16,
       fontWeight: 'bold',
       fill: 0xFFFFFF

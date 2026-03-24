@@ -34,7 +34,9 @@ const SKIP_FRAMES = 2  // 每 2 帧渲染一次 (30 FPS)，减少内存压力
 
 const bgImages = {
   day: null,
-  night: null
+  night: null,
+  dayClose: null,
+  nightClose: null
 }
 
 const statusIcons = {
@@ -68,6 +70,8 @@ async function initGame() {
   
   bgImages.day = await loadTexture('data/sprites/bg/day_bg.png')
   bgImages.night = await loadTexture('data/sprites/bg/night_bg.png')
+  bgImages.dayClose = await loadTexture('data/sprites/bg/day_bg_close.png')
+  bgImages.nightClose = await loadTexture('data/sprites/bg/night_bg_close.png')
   
   try {
     statusIcons.coin = await loadTexture('data/sprites/icons/coin.png')
@@ -154,8 +158,10 @@ async function initGame() {
   })
   
   coffeeSelector.setOnConfirm(coffees => {
+    // 确认后开始营业
+    gameState.openShop()
     wx.showToast({
-      title: `Selling ${coffees.length} coffee(s)`,
+      title: `开始营业，售卖 ${coffees.length} 种咖啡`,
       icon: 'none'
     })
   })
@@ -347,7 +353,15 @@ function drawErrorScreen() {
 function drawBackground() {
   const layer = pixiManager.getLayer('background')
   const dateTime = gameState.getDateTime()
-  const bgImage = dateTime.isDaytime ? bgImages.day : bgImages.night
+  const carStatus = gameState.getCarStatus()
+  
+  // 根据店铺状态和时间段选择背景图
+  let bgImage = null
+  if (carStatus === 'Open') {
+    bgImage = dateTime.isDaytime ? bgImages.day : bgImages.night
+  } else {
+    bgImage = dateTime.isDaytime ? bgImages.dayClose : bgImages.nightClose
+  }
   
   if (bgImage) {
     const sprite = pixiManager.createSprite(bgImage)
@@ -472,6 +486,21 @@ function drawStatusBar() {
   time.x = x + barWidth * 0.5
   time.y = y + barHeight + 15
   layer.addChild(time)
+  
+  // 店铺状态显示
+  const carStatus = gameState.getCarStatus()
+  const statusText = carStatus === 'Open' ? '营业中' : '休息中'
+  const statusColor = carStatus === 'Open' ? 0x27AE60 : 0xE74C3C
+  
+  const status = pixiManager.createText(`● ${statusText}`, {
+    fontSize: 12,
+    fontWeight: 'bold',
+    fill: statusColor
+  })
+  status.anchor.set(0, 0.5)
+  status.x = x + barWidth * 0.85
+  status.y = y + barHeight + 15
+  layer.addChild(status)
 }
 
 function drawMainButtons() {
@@ -506,6 +535,52 @@ function drawMainButtons() {
       height: btnSize + labelHeight
     })
   })
+  
+  // 绘制营业/停止营业按钮
+  drawShopStatusButton()
+}
+
+function drawShopStatusButton() {
+  const layer = pixiManager.getLayer('ui')
+  const carStatus = gameState.getCarStatus()
+  
+  // 按钮位置和尺寸
+  const btnWidth = 90
+  const btnHeight = 32
+  const btnX = screenWidth - btnWidth - 15
+  const btnY = 75  // 在状态栏下方
+  
+  const isOpen = carStatus === 'Open'
+  const btnText = isOpen ? '停止营业' : '开始营业'
+  const btnColor = isOpen ? 0xE74C3C : 0x27AE60
+  
+  // 按钮背景
+  const bg = pixiManager.createGraphics()
+  bg.beginFill(btnColor, 0.9)
+  bg.drawRoundedRect(btnX, btnY, btnWidth, btnHeight, 16)
+  bg.endFill()
+  bg.lineStyle(1, 0x000000, 0.1)
+  bg.drawRoundedRect(btnX, btnY, btnWidth, btnHeight, 16)
+  layer.addChild(bg)
+  
+  // 按钮文字
+  const text = pixiManager.createText(btnText, {
+    fontSize: 14,
+    fontWeight: 'bold',
+    fill: 0xFFFFFF
+  })
+  text.anchor.set(0.5)
+  text.x = btnX + btnWidth / 2
+  text.y = btnY + btnHeight / 2
+  layer.addChild(text)
+  
+  // 保存按钮位置用于点击检测
+  ui.shopStatusButton = {
+    x: btnX,
+    y: btnY,
+    width: btnWidth,
+    height: btnHeight
+  }
 }
 
 function createButton(x, y, width, height, text, color) {
@@ -620,6 +695,14 @@ wx.onTouchStart(e => {
     }
   }
   
+  // 检查营业/停止营业按钮点击
+  if (!handled && ui.shopStatusButton) {
+    if (pixiManager.hitTest(touchStartX, touchStartY, ui.shopStatusButton)) {
+      handleShopStatusButtonClick()
+      handled = true
+    }
+  }
+  
   if (handled) {
     markDirty()  // 触摸交互后标记需要重绘
   }
@@ -649,6 +732,14 @@ function handleMainButtonClick(id) {
       mapUI.show()
       break
     case 'sell':
+      // 如果店铺已营业，提示先停止营业
+      if (gameState.getCarStatus() === 'Open') {
+        wx.showToast({
+          title: '请先停止营业再编辑菜单',
+          icon: 'none'
+        })
+        return
+      }
       coffeeSelector.show()
       break
     case 'cookbook':
@@ -665,6 +756,23 @@ function handleMainButtonClick(id) {
       break
   }
   markDirty()  // UI 状态变化后标记需要重绘
+}
+
+function handleShopStatusButtonClick() {
+  const carStatus = gameState.getCarStatus()
+  
+  if (carStatus === 'Open') {
+    // 停止营业
+    gameState.closeShop()
+    wx.showToast({
+      title: '营业已停止',
+      icon: 'none'
+    })
+  } else {
+    // 开始营业 - 显示菜单选择页面
+    coffeeSelector.show()
+  }
+  markDirty()
 }
 
 gameState.onChange((key, value, oldValue) => {
