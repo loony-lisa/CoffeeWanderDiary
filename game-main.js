@@ -165,17 +165,33 @@ async function initGame() {
   })
   
   // Set up map UI callbacks
-  mapUI.setOnDirectionClick((direction) => {
-    // Handle direction click - for now just travel to next city
-    const city = gameState.travelToNext()
-    wx.showToast({
-      title: `Traveled to ${city}`,
-      icon: 'none'
-    })
+  mapUI.setOnDirectionClick((direction, viewportX, viewportY) => {
+    // Handle direction click - could update target city based on position
+    console.log(`Map moved ${direction} to (${viewportX}, ${viewportY})`)
   })
   
   mapUI.setOnClose(() => {
-    // Map closed
+    // Map closed without traveling
+  })
+  
+  mapUI.setOnConfirmTravel((city, cost, time) => {
+    // Handle travel confirmation
+    console.log(`Traveling to ${city}, cost: ${cost}, time: ${time}`)
+    
+    // Check if player has enough money
+    if (gameState.getCoins() >= cost) {
+      gameState.spendCoins(cost)
+      const targetCity = gameState.travelToNext()
+      wx.showToast({
+        title: `已到达${targetCity}`,
+        icon: 'success'
+      })
+    } else {
+      wx.showToast({
+        title: '金币不足，无法前往',
+        icon: 'none'
+      })
+    }
   })
   
   startGameLoop()
