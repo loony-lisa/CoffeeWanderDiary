@@ -84,8 +84,8 @@ class CookbookUI {
       this.currentTab = categories[0].id
     }
     
-    // Preload coffee images
-    this.preloadCoffeeImages()
+    // Preload item images
+    this.preloadItemImages()
     
     console.log('CookbookUI initialization completed, current Tab:', this.currentTab)
   }
@@ -234,7 +234,7 @@ class CookbookUI {
 
   // Draw title
   drawTitle(pixi, modalX, modalY, modalWidth) {
-    const title = pixi.createText('📚 Cookbook', {
+    const title = pixi.createText('图鉴', {
       fontSize: 20,
       fontWeight: 'bold',
       fill: 0x333333
@@ -294,7 +294,7 @@ class CookbookUI {
       }
       
       // Tab text
-      const tabText = pixi.createText(`${category.icon} ${category.name}`, {
+      const tabText = pixi.createText(category.name, {
         fontSize: 14,
         fontWeight: isActive ? 'bold' : 'normal',
         fill: isActive ? 0xFFFFFF : 0x666666
@@ -452,17 +452,8 @@ class CookbookUI {
 
   // Draw unlocked grid item
   drawGridUnlockedItem(pixi, container, item, x, y, width, height) {
-    // For coffees category, try to show image
-    if (this.currentTab === 'coffees') {
-      this.drawCoffeeImage(pixi, container, item, x, y, width, height)
-    } else {
-      // Icon
-      const icon = pixi.createText(item.icon || '📦', { fontSize: 28 })
-      icon.anchor.set(0.5)
-      icon.x = x + width / 2
-      icon.y = y + 22
-      container.addChild(icon)
-    }
+    // Try to show image for all categories
+    this.drawItemImage(pixi, container, item, x, y, width, height)
     
     // Name
     let name = item.name
@@ -497,7 +488,48 @@ class CookbookUI {
     container.addChild(overlay, lockIcon)
   }
 
-  // Draw coffee image
+  // Draw item image (for all categories)
+  drawItemImage(pixi, container, item, x, y, width, height) {
+    const imageSize = 32
+    const imageX = Math.floor(x + (width - imageSize) / 2)
+    const imageY = Math.floor(y + 4)
+    
+    // Check cache first
+    const cached = this.imageCache.get(item.id)
+    if (cached && cached.texture) {
+      const sprite = pixi.createSprite(cached.texture)
+      sprite.x = imageX
+      sprite.y = imageY
+      sprite.width = imageSize
+      sprite.height = imageSize
+      container.addChild(sprite)
+      return
+    }
+    
+    if (cached && cached.error) {
+      // If image failed to load, fallback to icon text
+      this.drawIconFallback(pixi, container, item, x, y, width, height)
+      return
+    }
+    
+    if (!cached) {
+      this.loadItemImage(item.id)
+    }
+    
+    // Draw placeholder while loading
+    this.drawPinkPlaceholder(pixi, container, imageX, imageY, imageSize)
+  }
+
+  // Draw icon fallback when image is not available
+  drawIconFallback(pixi, container, item, x, y, width, height) {
+    const icon = pixi.createText(item.icon || '📦', { fontSize: 28 })
+    icon.anchor.set(0.5)
+    icon.x = x + width / 2
+    icon.y = y + 22
+    container.addChild(icon)
+  }
+
+  // Draw coffee image (legacy method for detail modal)
   drawCoffeeImage(pixi, container, item, x, y, width, height) {
     const imageSize = 32
     const imageX = Math.floor(x + (width - imageSize) / 2)
@@ -521,15 +553,15 @@ class CookbookUI {
     }
     
     if (!cached) {
-      this.loadCoffeeImage(item.id)
+      this.loadItemImage(item.id)
     }
     
     // Draw placeholder while loading
     this.drawPinkPlaceholder(pixi, container, imageX, imageY, imageSize)
   }
   
-  // Load coffee image
-  loadCoffeeImage(itemId) {
+  // Load item image
+  loadItemImage(itemId) {
     // 限制缓存大小
     if (this.imageCache.size >= this.maxImageCacheSize) {
       const firstKey = this.imageCache.keys().next().value
@@ -592,17 +624,20 @@ class CookbookUI {
     img.src = imagePath
   }
   
-  // Preload all coffee images
-  preloadCoffeeImages() {
+  // Preload all item images
+  preloadItemImages() {
     if (!this.dataManager) return
     
-    const coffees = this.dataManager.getItemsByCategory('coffees')
-    if (!coffees) return
-    
-    coffees.forEach(coffee => {
-      if (!this.imageCache.has(coffee.id)) {
-        this.loadCoffeeImage(coffee.id)
-      }
+    const categories = ['coffees', 'ingredients', 'tools']
+    categories.forEach(category => {
+      const items = this.dataManager.getItemsByCategory(category)
+      if (!items) return
+      
+      items.forEach(item => {
+        if (!this.imageCache.has(item.id)) {
+          this.loadItemImage(item.id)
+        }
+      })
     })
   }
   
@@ -872,7 +907,7 @@ class CookbookUI {
     
     // Description section
     if (currentY < y + height - 60) {
-      const descTitle = pixi.createText('📝 Description', {
+      const descTitle = pixi.createText('描述', {
         fontSize: 16,
         fontWeight: 'bold',
         fill: 0x667eea
