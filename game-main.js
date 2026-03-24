@@ -6,6 +6,7 @@ const { cookbookDataManager } = require('./ui/cookbook/cookbookDataManager')
 const { CookbookUI } = require('./ui/cookbook/cookbookUI')
 const { ResearchUI } = require('./ui/researchUI')
 const { CoffeeSelector } = require('./ui/coffeeSelector')
+const { MapUI } = require('./ui/mapUI')
 const { pixiManager } = require('./managers/pixiManager')
 
 const sysInfo = wx.getSystemInfoSync()
@@ -21,6 +22,7 @@ let touchStartY = 0
 const cookbookUI = new CookbookUI(screenWidth, screenHeight)
 const researchUI = new ResearchUI(screenWidth, screenHeight)
 const coffeeSelector = new CoffeeSelector(screenWidth, screenHeight)
+const mapUI = new MapUI(screenWidth, screenHeight)
 
 let isGameReady = false
 let errorMessage = null
@@ -162,6 +164,20 @@ async function initGame() {
     // Selection cancelled
   })
   
+  // Set up map UI callbacks
+  mapUI.setOnDirectionClick((direction) => {
+    // Handle direction click - for now just travel to next city
+    const city = gameState.travelToNext()
+    wx.showToast({
+      title: `Traveled to ${city}`,
+      icon: 'none'
+    })
+  })
+  
+  mapUI.setOnClose(() => {
+    // Map closed
+  })
+  
   startGameLoop()
 }
 
@@ -222,6 +238,10 @@ function render() {
   
   if (coffeeSelector.isVisible()) {
     coffeeSelector.draw(pixiManager)
+  }
+  
+  if (mapUI.isVisible()) {
+    mapUI.draw(pixiManager)
   }
 }
 
@@ -562,6 +582,8 @@ wx.onTouchStart(e => {
     handled = true
   } else if (coffeeSelector.isVisible() && coffeeSelector.handleTouch(touchStartX, touchStartY)) {
     handled = true
+  } else if (mapUI.isVisible() && mapUI.handleTouch(touchStartX, touchStartY)) {
+    handled = true
   } else if (ui.topButtons) {
     for (const btn of ui.topButtons) {
       if (pixiManager.hitTest(touchStartX, touchStartY, btn)) {
@@ -608,11 +630,7 @@ function handleTopButtonClick(id) {
 function handleMainButtonClick(id) {
   switch (id) {
     case 'travel':
-      const city = gameState.travelToNext()
-      wx.showToast({
-        title: `Traveled to ${city}`,
-        icon: 'none'
-      })
+      mapUI.show()
       break
     case 'sell':
       coffeeSelector.show()
