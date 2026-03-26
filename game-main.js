@@ -1,5 +1,6 @@
 // game-main.js - 游戏主逻辑
 
+const { RESOURCES } = require('./config')
 const { gameState, CarStatus } = require('./managers/gameState')
 const { dataLoader } = require('./managers/dataLoader')
 const { cookbookDataManager } = require('./ui/cookbook/cookbookDataManager')
@@ -76,17 +77,17 @@ async function initGame() {
   
   canvas = pixiManager.getApp().view
   
-  bgImages.day = await loadTexture('data/sprites/bg/day_bg.png')
-  bgImages.night = await loadTexture('data/sprites/bg/night_bg.png')
-  bgImages.dayClose = await loadTexture('data/sprites/bg/day_bg_close.png')
-  bgImages.nightClose = await loadTexture('data/sprites/bg/night_bg_close.png')
+  bgImages.day = await loadTexture(RESOURCES.background('day_bg'))
+  bgImages.night = await loadTexture(RESOURCES.background('night_bg'))
+  bgImages.dayClose = await loadTexture(RESOURCES.background('day_bg_close'))
+  bgImages.nightClose = await loadTexture(RESOURCES.background('night_bg_close'))
   
   // 加载夜间背景精灵图动画
   await loadBgNightAnimeFrames()
   
   try {
-    statusIcons.coin = await loadTexture('data/sprites/icons/coin.png')
-    statusIcons.ruby = await loadTexture('data/sprites/icons/ruby.png')
+    statusIcons.coin = await loadTexture(RESOURCES.icon('coin'))
+    statusIcons.ruby = await loadTexture(RESOURCES.icon('ruby'))
   } catch (e) {
     console.warn('Status icons loading failed:', e)
   }

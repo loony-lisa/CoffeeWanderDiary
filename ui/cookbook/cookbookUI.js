@@ -1,5 +1,6 @@
 // cookbookUI.js - Cookbook Interface with PixiJS
 
+const { RESOURCES } = require('../../config')
 const { pixiManager } = require('../../managers/pixiManager')
 
 class CookbookUI {
@@ -572,7 +573,7 @@ class CookbookUI {
       this.imageCache.delete(firstKey)
     }
     
-    const imagePath = `data/sprites/${itemId}.png`
+    const imagePath = RESOURCES.coffee(itemId)
     
     const cacheEntry = {
       texture: null,

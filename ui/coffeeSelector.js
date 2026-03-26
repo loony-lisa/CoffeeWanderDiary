@@ -1,5 +1,6 @@
 // ui/coffeeSelector.js - Coffee Selector with PixiJS
 
+const { RESOURCES } = require('../config')
 const { cookbookDataManager } = require('./cookbook/cookbookDataManager')
 const { pixiManager } = require('../managers/pixiManager')
 
@@ -171,7 +172,7 @@ class CoffeeSelector {
       this.imageCache.delete(firstKey)
     }
     
-    const imagePath = `data/sprites/${itemId}.png`
+    const imagePath = RESOURCES.coffee(itemId)
     
     const cacheEntry = {
       texture: null,

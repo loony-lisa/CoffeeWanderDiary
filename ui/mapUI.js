@@ -1,5 +1,6 @@
 // ui/mapUI.js - Map UI with directional buttons
 
+const { RESOURCES } = require('../config')
 const { pixiManager } = require('../managers/pixiManager')
 
 class MapUI {
@@ -142,8 +143,8 @@ class MapUI {
     if (this.imageCache.has(name)) return
     
     const path = name === 'map' 
-      ? 'data/sprites/map.png' 
-      : `data/sprites/icons/${name}.png`
+      ? RESOURCES.map() 
+      : RESOURCES.icon(name)
     
     const cacheEntry = {
       texture: null,
