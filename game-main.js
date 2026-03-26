@@ -44,6 +44,14 @@ const statusIcons = {
   diamond: null
 }
 
+// 精灵图动画
+let bgNightAnimeSprite = null
+let bgNightAnimeFrames = []
+let bgNightAnimeFrameIndex = 0
+let bgNightAnimeLastFrameTime = 0
+const BG_NIGHT_ANIME_FPS = 5  // 5 FPS
+const BG_NIGHT_ANIME_FRAME_DURATION = 1000 / BG_NIGHT_ANIME_FPS  // 每帧持续时间(ms)
+
 const ui = {
   buttons: [],
   topButtons: null
@@ -72,6 +80,9 @@ async function initGame() {
   bgImages.night = await loadTexture('data/sprites/bg/night_bg.png')
   bgImages.dayClose = await loadTexture('data/sprites/bg/day_bg_close.png')
   bgImages.nightClose = await loadTexture('data/sprites/bg/night_bg_close.png')
+  
+  // 加载夜间背景精灵图动画
+  await loadBgNightAnimeFrames()
   
   try {
     statusIcons.coin = await loadTexture('data/sprites/icons/coin.png')
@@ -203,11 +214,68 @@ async function initGame() {
   startGameLoop()
 }
 
+async function loadBgNightAnimeFrames() {
+  try {
+    // 从 OSS 加载精灵图
+    const OSS_URL = 'https://coffee-wander-diary-shanghai-a58yjceu96.oss-cn-shanghai.aliyuncs.com/frame_0001-sheet.png'
+    const spriteSheetTexture = await loadTexture(OSS_URL)
+    
+    if (!spriteSheetTexture) {
+      console.warn('Sprite sheet texture is null, skipping animation load')
+      return
+    }
+    
+    const PIXI = pixiManager.getPIXI()
+    const frames = []
+    
+    // 雪碧图布局：每帧 512x384，横向排列，共 20 帧
+    // 根据这个规律直接生成帧数据
+    for (let i = 0; i < 20; i++) {
+      const x = i * 512
+      const y = 0
+      const w = 512
+      const h = 384
+      
+      // 从雪碧图创建子纹理
+      const frameTexture = new PIXI.Texture(
+        spriteSheetTexture.baseTexture,
+        new PIXI.Rectangle(x, y, w, h)
+      )
+      frames.push(frameTexture)
+    }
+    
+    bgNightAnimeFrames = frames
+    console.log(`Loaded ${frames.length} frames for bg_night_anime`)
+  } catch (e) {
+    console.warn('Failed to load bg_night_anime frames:', e)
+    bgNightAnimeFrames = []
+  }
+}
+
+function updateBgNightAnime() {
+  if (bgNightAnimeFrames.length === 0) return
+  
+  const now = Date.now()
+  if (now - bgNightAnimeLastFrameTime >= BG_NIGHT_ANIME_FRAME_DURATION) {
+    bgNightAnimeFrameIndex = (bgNightAnimeFrameIndex + 1) % bgNightAnimeFrames.length
+    bgNightAnimeLastFrameTime = now
+    
+    // 更新精灵纹理
+    if (bgNightAnimeSprite) {
+      bgNightAnimeSprite.texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
+    }
+  }
+}
+
 function startGameLoop() {
   const app = pixiManager.getApp()
   
   app.ticker.add(() => {
     frameCount++
+    
+    // 更新精灵图动画（每帧都更新，不跳过）
+    updateBgNightAnime()
+    
     // 跳过部分帧，降低渲染频率
     if (frameCount % (SKIP_FRAMES + 1) !== 0) return
     
@@ -376,6 +444,36 @@ function drawBackground() {
     bg.endFill()
     layer.addChild(bg)
   }
+  
+  // 绘制精灵图动画在页面正当中
+  drawBgNightAnime()
+}
+
+function drawBgNightAnime() {
+  if (bgNightAnimeFrames.length === 0) return
+  
+  const layer = pixiManager.getLayer('background')
+  
+  // 如果精灵不存在，创建它
+  if (!bgNightAnimeSprite) {
+    bgNightAnimeSprite = pixiManager.createSprite(bgNightAnimeFrames[0])
+    bgNightAnimeSprite.anchor.set(0.5)  // 设置锚点为中心
+  }
+  
+  // 更新当前帧
+  bgNightAnimeSprite.texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
+  
+  // 计算位置：页面正当中
+  bgNightAnimeSprite.x = screenWidth / 2
+  bgNightAnimeSprite.y = screenHeight / 2
+  
+  // 可选：缩放以适应屏幕（保持宽高比）
+  const scaleX = screenWidth / 512
+  const scaleY = screenHeight / 384
+  const scale = Math.min(scaleX, scaleY) * 0.8  // 缩放为屏幕的80%
+  bgNightAnimeSprite.scale.set(scale)
+  
+  layer.addChild(bgNightAnimeSprite)
 }
 
 function drawTopButtons() {
