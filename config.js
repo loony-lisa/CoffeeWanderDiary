@@ -18,7 +18,10 @@ const RESOURCES = {
   background: (name) => `${OSS_BASE_URL}/image/background/${name}.png`,
   
   // 地图
-  map: () => `${OSS_BASE_URL}/image/background/map.png`
+  map: () => `${OSS_BASE_URL}/image/background/map.png`,
+
+  // 动画
+  anime: (name) => `${OSS_BASE_URL}/anime/${name}/frame_0001-sheet.png`
 }
 
 module.exports = {

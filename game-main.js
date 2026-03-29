@@ -14,8 +14,6 @@ const sysInfo = wx.getSystemInfoSync()
 const screenWidth = sysInfo.windowWidth
 const screenHeight = sysInfo.windowHeight
 
-
-
 let canvas = null
 let touchStartX = 0
 let touchStartY = 0
@@ -81,16 +79,12 @@ async function initGame() {
   bgImages.night = await loadTexture(RESOURCES.background('night_bg'))
   bgImages.dayClose = await loadTexture(RESOURCES.background('day_bg_close'))
   bgImages.nightClose = await loadTexture(RESOURCES.background('night_bg_close'))
+
+  statusIcons.coin = await loadTexture(RESOURCES.icon('coin'))
+  statusIcons.ruby = await loadTexture(RESOURCES.icon('ruby'))
   
   // 加载夜间背景精灵图动画
-  await loadBgNightAnimeFrames()
-  
-  try {
-    statusIcons.coin = await loadTexture(RESOURCES.icon('coin'))
-    statusIcons.ruby = await loadTexture(RESOURCES.icon('ruby'))
-  } catch (e) {
-    console.warn('Status icons loading failed:', e)
-  }
+  await loadBgAnimeFrames()
   
   dataLoader.onProgress((progress, file) => {
     console.log(`Loading: ${progress}% - ${file}`)
@@ -215,10 +209,10 @@ async function initGame() {
   startGameLoop()
 }
 
-async function loadBgNightAnimeFrames() {
+async function loadBgAnimeFrames() {
   try {
     // 从 OSS 加载精灵图
-    const OSS_URL = 'https://coffee-wander-diary-shanghai-a58yjceu96.oss-cn-shanghai.aliyuncs.com/frame_0001-sheet.png'
+    const OSS_URL = RESOURCES.anime('beach_day')
     const spriteSheetTexture = await loadTexture(OSS_URL)
     
     if (!spriteSheetTexture) {
