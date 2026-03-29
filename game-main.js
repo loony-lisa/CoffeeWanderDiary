@@ -449,8 +449,8 @@ function drawBgNightAnime() {
   
   const layer = pixiManager.getLayer('background')
   
-  // 如果精灵不存在，创建它
-  if (!bgNightAnimeSprite) {
+  // 如果精灵不存在或已被销毁（被 clearAllLayers 销毁），重新创建
+  if (!bgNightAnimeSprite || bgNightAnimeSprite._destroyed) {
     bgNightAnimeSprite = pixiManager.createSprite(bgNightAnimeFrames[0])
     bgNightAnimeSprite.anchor.set(0.5)  // 设置锚点为中心
   }
