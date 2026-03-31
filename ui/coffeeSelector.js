@@ -88,6 +88,24 @@ class CoffeeSelector {
     return true
   }
   
+  // Load saved menu coffees
+  loadSavedSelection(savedCoffees) {
+    if (!savedCoffees || savedCoffees.length === 0) return
+    
+    this.selectedCoffees.clear()
+    const unlockedCoffees = this.getUnlockedCoffees()
+    const unlockedIds = new Set(unlockedCoffees.map(c => c.id))
+    
+    // Only add coffees that are still unlocked
+    savedCoffees.forEach(coffeeId => {
+      if (unlockedIds.has(coffeeId) && this.selectedCoffees.size < this.maxSelection) {
+        this.selectedCoffees.add(coffeeId)
+      }
+    })
+    
+    console.log('Loaded saved coffee selection:', Array.from(this.selectedCoffees))
+  }
+  
   hide() {
     console.log('CoffeeSelector.hide() called')
     this.visible = false
@@ -147,6 +165,11 @@ class CoffeeSelector {
   getSelectedCoffees() {
     const allCoffees = this.getUnlockedCoffees()
     return allCoffees.filter(coffee => this.selectedCoffees.has(coffee.id))
+  }
+  
+  // Get selected coffee IDs
+  getSelectedCoffeeIds() {
+    return Array.from(this.selectedCoffees)
   }
 
   // ========== Image Loading ==========

@@ -698,8 +698,8 @@ function drawShopStatusButton() {
   // 按钮位置和尺寸
   const btnWidth = 90
   const btnHeight = 32
-  const btnX = screenWidth - btnWidth - 15
-  const btnY = 75  // 在状态栏下方
+  const btnX = 15  // 与城市名左对齐
+  const btnY = 85  // 在城市名下方
   
   const isOpen = carStatus === 'Open'
   const btnText = isOpen ? '停止营业' : '开始营业'
@@ -896,9 +896,18 @@ gameState.onChange((key, value, oldValue) => {
 })
 
 wx.onHide(() => {
+  // 获取当前选择的咖啡列表
+  const selectedCoffees = coffeeSelector.getSelectedCoffeeIds()
+  gameState.setMenuCoffees(selectedCoffees)
+  
+  // 保存游戏状态（包含退出时间戳）
   gameState.save()
   cookbookDataManager.saveUnlockProgress()
 })
 
 gameState.load()
+
+// 加载保存的咖啡选择
+coffeeSelector.loadSavedSelection(gameState.getMenuCoffees())
+
 initGame()

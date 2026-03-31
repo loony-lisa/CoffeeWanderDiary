@@ -256,6 +256,18 @@ class GameState {
     })
   }
 
+  // ========== Menu Coffee Selection ==========
+  // Used for save data before onHide
+  // Set selected menu coffees
+  setMenuCoffees(coffeeIds) {
+    this.menuCoffees = coffeeIds || []
+  }
+  
+  // Get selected menu coffees
+  getMenuCoffees() {
+    return this.menuCoffees || []
+  }
+
   // ========== Data Persistence ==========
   
   // Save to local storage
@@ -264,7 +276,9 @@ class GameState {
       coins: this.coins,
       rubies: this.rubies,
       carStatus: this.carStatus,
-      currentCity: this.currentCity
+      currentCity: this.currentCity,
+      menuCoffees: this.menuCoffees || [],
+      lastExitTime: new Date().toISOString()
     }
     wx.setStorageSync('gameState', data)
     console.log('Game state saved:', data)
@@ -279,6 +293,8 @@ class GameState {
         this.rubies = data.rubies || 0
         this.carStatus = data.carStatus || CarStatus.CLOSED
         this.currentCity = data.currentCity || Cities[0]
+        this.menuCoffees = data.menuCoffees || []
+        this.lastExitTime = data.lastExitTime || null
         console.log('Game state loaded:', this.getState())
         return true
       }
@@ -296,7 +312,9 @@ class GameState {
       coins: this.coins,
       rubies: this.rubies,
       carStatus: this.carStatus,
-      currentCity: this.currentCity
+      currentCity: this.currentCity,
+      menuCoffees: this.menuCoffees || [],
+      lastExitTime: this.lastExitTime || null
     }
   }
 
