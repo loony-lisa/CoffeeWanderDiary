@@ -21,7 +21,10 @@ const RESOURCES = {
   map: () => `${OSS_BASE_URL}/image/background/map.png`,
 
   // 动画
-  anime: (name) => `${OSS_BASE_URL}/anime/${name}/frame_0001-sheet.png`
+  anime: (name) => `${OSS_BASE_URL}/anime/${name}/frame_0001-sheet.png`,
+  
+  // 动画配置文件
+  animeJson: (name) => `${OSS_BASE_URL}/anime/${name}/frame_0001.json`
 }
 
 module.exports = {

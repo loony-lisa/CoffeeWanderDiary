@@ -265,6 +265,15 @@ class CoffeeSelector {
     container.addChild(placeholder)
   }
 
+  // Check if any images finished loading and need redraw
+  checkPendingRedraw() {
+    if (this.pendingRedraw && this.visible) {
+      this.pendingRedraw = false
+      return true
+    }
+    return false
+  }
+
   // ========== Drawing Entry ==========
   draw(pixi) {
     if (!this.visible) return

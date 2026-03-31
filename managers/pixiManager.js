@@ -85,6 +85,7 @@ class PixiManager {
     this.initialized = false
     
     this.layers = {
+      backgroundAnime: null,  // 背景动画层（在静态背景后面）
       background: null,
       game: null,
       ui: null,
@@ -181,12 +182,14 @@ class PixiManager {
   }
 
   createLayers() {
+    this.layers.backgroundAnime = new PIXI.Container()
     this.layers.background = new PIXI.Container()
     this.layers.game = new PIXI.Container()
     this.layers.ui = new PIXI.Container()
     this.layers.modal = new PIXI.Container()
     this.layers.overlay = new PIXI.Container()
     
+    this.stage.addChild(this.layers.backgroundAnime)
     this.stage.addChild(this.layers.background)
     this.stage.addChild(this.layers.game)
     this.stage.addChild(this.layers.ui)
@@ -346,40 +349,6 @@ class PixiManager {
     graphics.lineStyle(lineWidth, color)
     graphics.drawRect(x, y, width, height)
     return graphics
-  }
-
-  createButton(x, y, width, height, text, color, textColor = 0xFFFFFF, callback = null) {
-    const container = new PIXI.Container()
-    
-    const bg = this.createGraphics()
-    this.drawRect(bg, 0, 0, width, height, color)
-    
-    const label = this.createText(text, {
-      fontSize: 14,
-      fontWeight: 'bold',
-      fill: textColor
-    })
-    label.anchor.set(0.5)
-    label.x = width / 2
-    label.y = height / 2
-    
-    container.addChild(bg)
-    container.addChild(label)
-    container.x = x
-    container.y = y
-    
-    container.hitArea = new PIXI.Rectangle(0, 0, width, height)
-    container.buttonData = { x, y, width, height, text }
-    
-    // PixiJS v6 API: 使用 interactive 而不是 eventMode
-    container.interactive = true
-    container.buttonMode = true
-    
-    if (callback) {
-      container.on('pointerdown', callback)
-    }
-    
-    return container
   }
 
   hitTest(x, y, rect) {

@@ -75,8 +75,8 @@ async function initGame() {
   
   canvas = pixiManager.getApp().view
   
-  bgImages.day = await loadTexture(RESOURCES.background('day_bg'))
-  bgImages.night = await loadTexture(RESOURCES.background('night_bg'))
+  bgImages.day = await loadTexture(RESOURCES.background('day_bg_static'))
+  bgImages.night = await loadTexture(RESOURCES.background('night_bg_static'))
   bgImages.dayClose = await loadTexture(RESOURCES.background('day_bg_close'))
   bgImages.nightClose = await loadTexture(RESOURCES.background('night_bg_close'))
 
@@ -211,9 +211,36 @@ async function initGame() {
 
 async function loadBgAnimeFrames() {
   try {
+    // 从 OSS 加载 JSON 配置文件
+    const jsonUrl = RESOURCES.animeJson('beach_day')
+    console.log('[Debug] JSON URL:', jsonUrl)
+    
+    const jsonData = await new Promise((resolve, reject) => {
+      wx.request({
+        url: jsonUrl,
+        method: 'GET',
+        header: {
+          'Content-Type': 'application/json'
+        },
+        success: (res) => {
+          console.log('[Debug] wx.request success:', res.statusCode, res.header)
+          if (res.statusCode === 200) {
+            resolve(res.data)
+          } else {
+            console.error('[Debug] Response data:', res.data)
+            reject(new Error(`Failed to load JSON: ${res.statusCode}`))
+          }
+        },
+        fail: (err) => {
+          console.error('[Debug] wx.request fail:', err)
+          reject(err)
+        }
+      })
+    })
+    
     // 从 OSS 加载精灵图
-    const OSS_URL = RESOURCES.anime('beach_day')
-    const spriteSheetTexture = await loadTexture(OSS_URL)
+    const spriteSheetUrl = RESOURCES.anime('beach_day')
+    const spriteSheetTexture = await loadTexture(spriteSheetUrl)
     
     if (!spriteSheetTexture) {
       console.warn('Sprite sheet texture is null, skipping animation load')
@@ -223,13 +250,17 @@ async function loadBgAnimeFrames() {
     const PIXI = pixiManager.getPIXI()
     const frames = []
     
-    // 雪碧图布局：每帧 512x384，横向排列，共 20 帧
-    // 根据这个规律直接生成帧数据
+    // 从 JSON 中按顺序提取帧数据（frame_0001 0.png 到 frame_0001 19.png）
     for (let i = 0; i < 20; i++) {
-      const x = i * 512
-      const y = 0
-      const w = 512
-      const h = 384
+      const frameKey = `frame_0001 ${i}.png`
+      const frameData = jsonData.frames[frameKey]
+      
+      if (!frameData) {
+        console.warn(`Frame ${i} not found in JSON`)
+        continue
+      }
+      
+      const { x, y, w, h } = frameData.frame
       
       // 从雪碧图创建子纹理
       const frameTexture = new PIXI.Texture(
@@ -247,7 +278,7 @@ async function loadBgAnimeFrames() {
   }
 }
 
-function updateBgNightAnime() {
+function updateBgAnime() {
   if (bgNightAnimeFrames.length === 0) return
   
   const now = Date.now()
@@ -269,7 +300,12 @@ function startGameLoop() {
     frameCount++
     
     // 更新精灵图动画（每帧都更新，不跳过）
-    updateBgNightAnime()
+    updateBgAnime()
+    
+    // 检查UI是否需要重绘（异步图片加载完成）
+    if (checkUIRedraw()) {
+      markDirty()
+    }
     
     // 跳过部分帧，降低渲染频率
     if (frameCount % (SKIP_FRAMES + 1) !== 0) return
@@ -328,6 +364,20 @@ function render() {
   if (mapUI.isVisible()) {
     mapUI.draw(pixiManager)
   }
+}
+
+// Check if any UI needs redraw due to async image loading
+function checkUIRedraw() {
+  if (cookbookUI.checkPendingRedraw && cookbookUI.checkPendingRedraw()) {
+    return true
+  }
+  if (coffeeSelector.checkPendingRedraw && coffeeSelector.checkPendingRedraw()) {
+    return true
+  }
+  if (mapUI.checkPendingRedraw && mapUI.checkPendingRedraw()) {
+    return true
+  }
+  return false
 }
 
 function drawLoadingScreen() {
@@ -447,7 +497,10 @@ function drawBackground() {
 function drawBgNightAnime() {
   if (bgNightAnimeFrames.length === 0) return
   
-  const layer = pixiManager.getLayer('background')
+  // 只有在营业中时才显示背景动画
+  if (gameState.getCarStatus() !== 'Open') return
+  
+  const layer = pixiManager.getLayer('backgroundAnime')
   
   // 如果精灵不存在或已被销毁（被 clearAllLayers 销毁），重新创建
   if (!bgNightAnimeSprite || bgNightAnimeSprite._destroyed) {
@@ -458,14 +511,19 @@ function drawBgNightAnime() {
   // 更新当前帧
   bgNightAnimeSprite.texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
   
-  // 计算位置：页面正当中
+  // 获取原图尺寸
+  const texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
+  const originalWidth = texture.orig ? texture.orig.width : texture.width
+  const originalHeight = texture.orig ? texture.orig.height : texture.height
+  
+  // 计算缩放比例：宽度与屏幕宽度一致，保持宽高比
+  const scale = screenWidth / originalWidth
+  
+  // 计算位置：居中显示
   bgNightAnimeSprite.x = screenWidth / 2
   bgNightAnimeSprite.y = screenHeight / 2
   
-  // 可选：缩放以适应屏幕（保持宽高比）
-  const scaleX = screenWidth / 512
-  const scaleY = screenHeight / 384
-  const scale = Math.min(scaleX, scaleY) * 0.8  // 缩放为屏幕的80%
+  // 应用缩放
   bgNightAnimeSprite.scale.set(scale)
   
   layer.addChild(bgNightAnimeSprite)
@@ -674,41 +732,6 @@ function drawShopStatusButton() {
     width: btnWidth,
     height: btnHeight
   }
-}
-
-function createButton(x, y, width, height, text, color) {
-  const PIXI = pixiManager.getPIXI()
-  const container = new PIXI.Container()
-  
-  const bg = pixiManager.createGraphics()
-  bg.beginFill(color)
-  bg.drawRoundedRect(0, 0, width, height, 10)
-  bg.endFill()
-  
-  bg.beginFill(0x000000, 0.2)
-  bg.drawRoundedRect(0, 4, width, height, 10)
-  bg.endFill()
-  
-  bg.beginFill(color)
-  bg.drawRoundedRect(0, 0, width, height, 10)
-  bg.endFill()
-  
-  container.addChild(bg)
-  
-  const label = pixiManager.createText(text, {
-    fontSize: 16,
-    fontWeight: 'bold',
-    fill: 0xFFFFFF
-  })
-  label.anchor.set(0.5)
-  label.x = width / 2
-  label.y = height / 2
-  container.addChild(label)
-  
-  container.x = x
-  container.y = y
-  
-  return container
 }
 
 function createIconButton(x, y, size, icon, label, color) {

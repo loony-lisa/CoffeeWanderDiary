@@ -16,6 +16,7 @@ class MapUI {
     
     // Image cache
     this.imageCache = new Map()
+    this.pendingRedraw = false
     
     // Size configuration
     this.config = {
@@ -181,6 +182,7 @@ class MapUI {
         
         cacheEntry.texture = texture
         cacheEntry.loaded = true
+        this.pendingRedraw = true
         console.log(`Image loaded: ${name} (${origWidth}x${origHeight})`)
       } catch (e) {
         cacheEntry.error = true
@@ -244,6 +246,15 @@ class MapUI {
     text.x = x + width / 2
     text.y = y + height / 2
     container.addChild(text)
+  }
+
+  // Check if any images finished loading and need redraw
+  checkPendingRedraw() {
+    if (this.pendingRedraw && this.visible) {
+      this.pendingRedraw = false
+      return true
+    }
+    return false
   }
 
   // ========== Drawing Entry ==========

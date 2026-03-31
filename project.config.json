@@ -31,7 +31,8 @@
     "useCompilerPlugins": false,
     "condition": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "disableCache": true
   },
   "condition": {},
   "editorSetting": {
