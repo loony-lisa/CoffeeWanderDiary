@@ -268,6 +268,27 @@ class GameState {
     return this.menuCoffees || []
   }
 
+  // ========== Shop Open Time ==========
+  
+  // Set shop open time (when shop starts operating)
+  setShopOpenTime(timestamp) {
+    this.shopOpenTime = timestamp
+  }
+  
+  // Get shop open time
+  getShopOpenTime() {
+    return this.shopOpenTime
+  }
+  
+  // Check if shop has been open for more than max hours (8 hours)
+  isShopOpenMaxTime(maxHours = 8) {
+    if (!this.shopOpenTime || this.carStatus !== CarStatus.OPEN) return false
+    const openTime = new Date(this.shopOpenTime)
+    const now = new Date()
+    const elapsedHours = (now - openTime) / (1000 * 60 * 60)
+    return elapsedHours >= maxHours
+  }
+
   // ========== Data Persistence ==========
   
   // Save to local storage
@@ -278,7 +299,8 @@ class GameState {
       carStatus: this.carStatus,
       currentCity: this.currentCity,
       menuCoffees: this.menuCoffees || [],
-      lastExitTime: new Date().toISOString()
+      lastExitTime: new Date().toISOString(),
+      shopOpenTime: this.shopOpenTime || null
     }
     wx.setStorageSync('gameState', data)
     console.log('Game state saved:', data)
@@ -295,6 +317,7 @@ class GameState {
         this.currentCity = data.currentCity || Cities[0]
         this.menuCoffees = data.menuCoffees || []
         this.lastExitTime = data.lastExitTime || null
+        this.shopOpenTime = data.shopOpenTime || null
         console.log('Game state loaded:', this.getState())
         return true
       }

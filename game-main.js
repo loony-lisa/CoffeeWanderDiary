@@ -8,7 +8,9 @@ const { CookbookUI } = require('./ui/cookbook/cookbookUI')
 const { ResearchUI } = require('./ui/researchUI')
 const { CoffeeSelector } = require('./ui/coffeeSelector')
 const { MapUI } = require('./ui/mapUI')
+const { MoneyJar } = require('./ui/moneyJar')
 const { pixiManager } = require('./managers/pixiManager')
+const { debugHelper } = require('./utils/debugHelper')
 
 const sysInfo = wx.getSystemInfoSync()
 const screenWidth = sysInfo.windowWidth
@@ -22,6 +24,7 @@ const cookbookUI = new CookbookUI(screenWidth, screenHeight)
 const researchUI = new ResearchUI(screenWidth, screenHeight)
 const coffeeSelector = new CoffeeSelector(screenWidth, screenHeight)
 const mapUI = new MapUI(screenWidth, screenHeight)
+const moneyJar = new MoneyJar(screenWidth, screenHeight)
 
 let isGameReady = false
 let errorMessage = null
@@ -83,6 +86,9 @@ async function initGame() {
   statusIcons.coin = await loadTexture(RESOURCES.icon('coin'))
   statusIcons.ruby = await loadTexture(RESOURCES.icon('ruby'))
   
+  // 加载存钱罐纹理
+  await moneyJar.loadTextures(pixiManager)
+  
   // 加载夜间背景精灵图动画
   await loadBgAnimeFrames()
   
@@ -127,6 +133,10 @@ async function initGame() {
     }
     
     isGameReady = true
+    
+    // 初始化调试助手（开发测试用）
+    debugHelper.init(gameState, moneyJar)
+    
     markDirty()  // 数据加载完成后重绘
   })
   
@@ -165,7 +175,10 @@ async function initGame() {
   
   coffeeSelector.setOnConfirm(coffees => {
     // 确认后开始营业
+    const now = new Date().toISOString()
     gameState.openShop()
+    gameState.setShopOpenTime(now)
+    moneyJar.setShopOpenTime(now)
     wx.showToast({
       title: `开始营业，售卖 ${coffees.length} 种咖啡`,
       icon: 'none'
@@ -302,6 +315,11 @@ function startGameLoop() {
     // 更新精灵图动画（每帧都更新，不跳过）
     updateBgAnime()
     
+    // 检查是否需要自动停止营业
+    if (isGameReady) {
+      checkAutoCloseShop()
+    }
+    
     // 检查UI是否需要重绘（异步图片加载完成）
     if (checkUIRedraw()) {
       markDirty()
@@ -348,6 +366,7 @@ function render() {
   drawStatusBar()
   drawTopButtons()
   drawMainButtons()
+  drawMoneyJar()
   
   if (cookbookUI.isVisible()) {
     cookbookUI.draw(pixiManager)
@@ -364,6 +383,9 @@ function render() {
   if (mapUI.isVisible()) {
     mapUI.draw(pixiManager)
   }
+  
+  // 绘制调试菜单
+  debugHelper.draw(pixiManager)
 }
 
 // Check if any UI needs redraw due to async image loading
@@ -691,6 +713,13 @@ function drawMainButtons() {
   drawShopStatusButton()
 }
 
+function drawMoneyJar() {
+  // 更新存钱罐动画
+  moneyJar.update()
+  // 绘制存钱罐
+  moneyJar.draw(pixiManager)
+}
+
 function drawShopStatusButton() {
   const layer = pixiManager.getLayer('ui')
   const carStatus = gameState.getCarStatus()
@@ -783,7 +812,12 @@ wx.onTouchStart(e => {
   
   let handled = false
   
-  if (cookbookUI.isVisible() && cookbookUI.handleTouch(touchStartX, touchStartY)) {
+  // 检查调试助手触发区域和按钮
+  if (debugHelper.checkTrigger(touchStartX, touchStartY)) {
+    handled = true
+  } else if (debugHelper.handleClick(touchStartX, touchStartY)) {
+    handled = true
+  } else if (cookbookUI.isVisible() && cookbookUI.handleTouch(touchStartX, touchStartY)) {
     handled = true
   } else if (researchUI.isVisible() && researchUI.handleTouch(touchStartX, touchStartY)) {
     handled = true
@@ -815,6 +849,14 @@ wx.onTouchStart(e => {
   if (!handled && ui.shopStatusButton) {
     if (pixiManager.hitTest(touchStartX, touchStartY, ui.shopStatusButton)) {
       handleShopStatusButtonClick()
+      handled = true
+    }
+  }
+  
+  // 检查存钱罐点击
+  if (!handled && moneyJar.hasCoins()) {
+    if (moneyJar.hitTest(touchStartX, touchStartY)) {
+      handleMoneyJarClick()
       handled = true
     }
   }
@@ -880,6 +922,8 @@ function handleShopStatusButtonClick() {
   if (carStatus === 'Open') {
     // 停止营业
     gameState.closeShop()
+    gameState.setShopOpenTime(null)
+    moneyJar.setShopOpenTime(null)
     wx.showToast({
       title: '营业已停止',
       icon: 'none'
@@ -891,6 +935,46 @@ function handleShopStatusButtonClick() {
   markDirty()
 }
 
+function handleMoneyJarClick() {
+  const coins = moneyJar.collect()
+  if (coins > 0) {
+    gameState.addCoins(coins)
+    wx.showToast({
+      title: `获得 ${coins} 金币`,
+      icon: 'none'
+    })
+    markDirty()
+  }
+}
+
+// 检查是否需要自动停止营业（每10秒检查一次）
+let lastAutoCheckTime = 0
+function checkAutoCloseShop() {
+  const now = Date.now()
+  if (now - lastAutoCheckTime < 10000) return // 10秒检查一次
+  lastAutoCheckTime = now
+  
+  if (gameState.isShopOpenMaxTime()) {
+    console.log(`[自动休息] 营业已满8小时，自动停止营业`)
+    
+    // 自动收集金币
+    const coins = moneyJar.collect()
+    if (coins > 0) {
+      gameState.addCoins(coins)
+      wx.showToast({
+        title: `营业8小时，获得 ${coins} 金币`,
+        icon: 'none',
+        duration: 3000
+      })
+    }
+    
+    gameState.closeShop()
+    gameState.setShopOpenTime(null)
+    moneyJar.setShopOpenTime(null)
+    markDirty()
+  }
+}
+
 gameState.onChange((key, value, oldValue) => {
   markDirty()  // 游戏状态变化后标记需要重绘
 })
@@ -900,12 +984,59 @@ wx.onHide(() => {
   const selectedCoffees = coffeeSelector.getSelectedCoffeeIds()
   gameState.setMenuCoffees(selectedCoffees)
   
-  // 保存游戏状态（包含退出时间戳）
+  // 保存游戏状态（包含退出时间戳和营业开始时间）
   gameState.save()
   cookbookDataManager.saveUnlockProgress()
 })
 
 gameState.load()
+
+// 计算并打印离线时长，初始化存钱罐离线金币
+const lastExitTime = gameState.lastExitTime
+const shopOpenTime = gameState.getShopOpenTime()
+
+if (lastExitTime && shopOpenTime) {
+  // 上次退出时正在营业，计算营业时长
+  const openTime = new Date(shopOpenTime)
+  const now = new Date()
+  const elapsedMs = now - openTime
+  const elapsedHours = elapsedMs / (1000 * 60 * 60)
+  
+  console.log(`[营业时长] 开始营业: ${openTime.toLocaleString()}, 已营业: ${elapsedHours.toFixed(2)} 小时`)
+  
+  // 计算离线金币（基于营业开始时间）
+  const offlineCoins = moneyJar.calculateOfflineCoins(shopOpenTime, lastExitTime)
+  if (offlineCoins > 0) {
+    console.log(`[离线金币] 获得 ${offlineCoins} 金币，点击存钱罐领取`)
+  }
+  
+  // 检查是否超过8小时，自动停止营业
+  if (elapsedHours >= 8) {
+    console.log(`[自动休息] 营业已满8小时，自动停止营业`)
+    gameState.closeShop()
+    // 清空存钱罐，金币已自动发放
+    moneyJar.setShopOpenTime(null)
+  } else {
+    // 继续营业，初始化存钱罐
+    moneyJar.init(shopOpenTime)
+  }
+} else if (shopOpenTime) {
+  // 有营业开始时间但没有退出时间（异常情况）
+  const openTime = new Date(shopOpenTime)
+  const now = new Date()
+  const elapsedHours = (now - openTime) / (1000 * 60 * 60)
+  
+  if (elapsedHours >= 8) {
+    console.log(`[自动休息] 营业已满8小时，自动停止营业`)
+    gameState.closeShop()
+    moneyJar.setShopOpenTime(null)
+  } else {
+    moneyJar.init(shopOpenTime)
+  }
+} else {
+  console.log('[营业状态] 店铺当前处于休息状态')
+  moneyJar.setShopOpenTime(null)
+}
 
 // 加载保存的咖啡选择
 coffeeSelector.loadSavedSelection(gameState.getMenuCoffees())
