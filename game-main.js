@@ -48,9 +48,10 @@ const statusIcons = {
 
 // 精灵图动画
 let bgNightAnimeSprite = null
-let bgNightAnimeFrames = []
+let bgDayAnimeFrames = []    // 白天海滩动画帧
+let bgNightAnimeFrames = []  // 夜晚海滩动画帧
 let bgNightAnimeFrameIndex = 0
-let bgNightAnimeLastFrameTime = 0
+let bgAnimeLastFrameTime = 0
 const BG_NIGHT_ANIME_FPS = 5  // 5 FPS
 const BG_NIGHT_ANIME_FRAME_DURATION = 1000 / BG_NIGHT_ANIME_FPS  // 每帧持续时间(ms)
 
@@ -224,9 +225,20 @@ async function initGame() {
 
 async function loadBgAnimeFrames() {
   try {
+    // 加载白天海滩动画
+    await loadBgAnimeFramesForType('beach_day', 'day')
+    // 加载夜晚海滩动画
+    await loadBgAnimeFramesForType('beach_night', 'night')
+  } catch (e) {
+    console.warn('Failed to load bg_anime frames:', e)
+  }
+}
+
+async function loadBgAnimeFramesForType(animeName, type) {
+  try {
     // 从 OSS 加载 JSON 配置文件
-    const jsonUrl = RESOURCES.animeJson('beach_day')
-    console.log('[Debug] JSON URL:', jsonUrl)
+    const jsonUrl = RESOURCES.animeJson(animeName)
+    console.log(`[Debug] JSON URL (${type}):`, jsonUrl)
     
     const jsonData = await new Promise((resolve, reject) => {
       wx.request({
@@ -236,27 +248,27 @@ async function loadBgAnimeFrames() {
           'Content-Type': 'application/json'
         },
         success: (res) => {
-          console.log('[Debug] wx.request success:', res.statusCode, res.header)
+          console.log(`[Debug] wx.request success (${type}):`, res.statusCode, res.header)
           if (res.statusCode === 200) {
             resolve(res.data)
           } else {
-            console.error('[Debug] Response data:', res.data)
+            console.error(`[Debug] Response data (${type}):`, res.data)
             reject(new Error(`Failed to load JSON: ${res.statusCode}`))
           }
         },
         fail: (err) => {
-          console.error('[Debug] wx.request fail:', err)
+          console.error(`[Debug] wx.request fail (${type}):`, err)
           reject(err)
         }
       })
     })
     
     // 从 OSS 加载精灵图
-    const spriteSheetUrl = RESOURCES.anime('beach_day')
+    const spriteSheetUrl = RESOURCES.anime(animeName)
     const spriteSheetTexture = await loadTexture(spriteSheetUrl)
     
     if (!spriteSheetTexture) {
-      console.warn('Sprite sheet texture is null, skipping animation load')
+      console.warn(`Sprite sheet texture is null (${type}), skipping animation load`)
       return
     }
     
@@ -269,7 +281,7 @@ async function loadBgAnimeFrames() {
       const frameData = jsonData.frames[frameKey]
       
       if (!frameData) {
-        console.warn(`Frame ${i} not found in JSON`)
+        console.warn(`Frame ${i} not found in JSON (${type})`)
         continue
       }
       
@@ -283,25 +295,36 @@ async function loadBgAnimeFrames() {
       frames.push(frameTexture)
     }
     
-    bgNightAnimeFrames = frames
-    console.log(`Loaded ${frames.length} frames for bg_night_anime`)
+    if (type === 'day') {
+      bgDayAnimeFrames = frames
+    } else {
+      bgNightAnimeFrames = frames
+    }
+    console.log(`Loaded ${frames.length} frames for bg_${type}_anime`)
   } catch (e) {
-    console.warn('Failed to load bg_night_anime frames:', e)
-    bgNightAnimeFrames = []
+    console.warn(`Failed to load bg_${type}_anime frames:`, e)
+    if (type === 'day') {
+      bgDayAnimeFrames = []
+    } else {
+      bgNightAnimeFrames = []
+    }
   }
 }
 
 function updateBgAnime() {
-  if (bgNightAnimeFrames.length === 0) return
+  const dateTime = gameState.getDateTime()
+  const currentFrames = dateTime.isDaytime ? bgDayAnimeFrames : bgNightAnimeFrames
+  
+  if (currentFrames.length === 0) return
   
   const now = Date.now()
-  if (now - bgNightAnimeLastFrameTime >= BG_NIGHT_ANIME_FRAME_DURATION) {
-    bgNightAnimeFrameIndex = (bgNightAnimeFrameIndex + 1) % bgNightAnimeFrames.length
-    bgNightAnimeLastFrameTime = now
+  if (now - bgAnimeLastFrameTime >= BG_NIGHT_ANIME_FRAME_DURATION) {
+    bgNightAnimeFrameIndex = (bgNightAnimeFrameIndex + 1) % currentFrames.length
+    bgAnimeLastFrameTime = now
     
     // 更新精灵纹理
     if (bgNightAnimeSprite) {
-      bgNightAnimeSprite.texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
+      bgNightAnimeSprite.texture = currentFrames[bgNightAnimeFrameIndex]
     }
   }
 }
@@ -517,7 +540,10 @@ function drawBackground() {
 }
 
 function drawBgNightAnime() {
-  if (bgNightAnimeFrames.length === 0) return
+  const dateTime = gameState.getDateTime()
+  const currentFrames = dateTime.isDaytime ? bgDayAnimeFrames : bgNightAnimeFrames
+  
+  if (currentFrames.length === 0) return
   
   // 只有在营业中时才显示背景动画
   if (gameState.getCarStatus() !== 'Open') return
@@ -526,15 +552,15 @@ function drawBgNightAnime() {
   
   // 如果精灵不存在或已被销毁（被 clearAllLayers 销毁），重新创建
   if (!bgNightAnimeSprite || bgNightAnimeSprite._destroyed) {
-    bgNightAnimeSprite = pixiManager.createSprite(bgNightAnimeFrames[0])
+    bgNightAnimeSprite = pixiManager.createSprite(currentFrames[0])
     bgNightAnimeSprite.anchor.set(0.5)  // 设置锚点为中心
   }
   
   // 更新当前帧
-  bgNightAnimeSprite.texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
+  bgNightAnimeSprite.texture = currentFrames[bgNightAnimeFrameIndex]
   
   // 获取原图尺寸
-  const texture = bgNightAnimeFrames[bgNightAnimeFrameIndex]
+  const texture = currentFrames[bgNightAnimeFrameIndex]
   const originalWidth = texture.orig ? texture.orig.width : texture.width
   const originalHeight = texture.orig ? texture.orig.height : texture.height
   
