@@ -1,54 +1,31 @@
 // recipeManager.js - Recipe Management Module
 
-// Flavor name mapping
-const FLAVOR_NAMES = {
-  'milk': 'Latte',
-  'caramel': 'Caramel',
-  'vanilla': 'Vanilla',
-  'chocolate': 'Mocha',
-  'matcha': 'Matcha',
-  'cinnamon': 'Cinnamon',
-  'honey': 'Honey',
-  'cream': 'Cream',
-  'coconut': 'Coconut',
-  'mint': 'Mint'
-}
-
-// Base name mapping
-const BASE_NAMES = {
-  'espresso': 'Espresso',
-  'americano': 'Americano',
-  'cold_brew': 'Cold Brew',
-  'latte_base': '',
-  'mocha_base': 'Mocha',
-  'matcha_base': 'Matcha',
-  'caramel_base': 'Caramel',
-  'vanilla_base': 'Vanilla'
-}
-
-// Special combination recipe table (highest priority)
-const SPECIAL_RECIPES = {
-  // key: "baseId_flavorId" -> value: special name
-  'espresso_milk': 'Latte',
-  'espresso_caramel': 'Caramel Macchiato',
-  'espresso_vanilla': 'Vanilla Latte',
-  'espresso_chocolate': 'Mocha',
-  'espresso_matcha': 'Matcha Latte',
-  'americano_milk': 'Americano Latte',
-  'cold_brew_coconut': 'Coconut Cold Brew',
-  'cold_brew_mint': 'Mint Cold Brew',
-  'latte_base_caramel': 'Caramel Latte',
-  'mocha_base_cream': 'Cream Mocha',
-  'matcha_base_milk': 'Matcha Latte',
-  'caramel_base_cream': 'Caramel Cream',
-  'vanilla_base_honey': 'Honey Vanilla'
-}
+// Default values (will be overridden by loaded config)
+const DEFAULT_FLAVOR_NAMES = {}
+const DEFAULT_BASE_NAMES = {}
+const DEFAULT_SPECIAL_RECIPES = {}
 
 class RecipeManager {
   constructor() {
-    this.flavorNames = FLAVOR_NAMES
-    this.baseNames = BASE_NAMES
-    this.specialRecipes = SPECIAL_RECIPES
+    this.flavorNames = { ...DEFAULT_FLAVOR_NAMES }
+    this.baseNames = { ...DEFAULT_BASE_NAMES }
+    this.specialRecipes = { ...DEFAULT_SPECIAL_RECIPES }
+  }
+
+  /**
+   * Load recipe configuration from JSON file
+   * @param {Object} config - Recipe configuration object from game-data.json
+   */
+  loadConfig(config) {
+    if (config.flavorNames) {
+      this.flavorNames = { ...config.flavorNames }
+    }
+    if (config.baseNames) {
+      this.baseNames = { ...config.baseNames }
+    }
+    if (config.specialRecipes) {
+      this.specialRecipes = { ...config.specialRecipes }
+    }
   }
 
   /**
@@ -113,22 +90,6 @@ class RecipeManager {
   addSpecialRecipe(baseId, flavorId, recipeName) {
     const key = `${baseId}_${flavorId}`
     this.specialRecipes[key] = recipeName
-  }
-
-  /**
-   * Load recipe configuration from JSON file
-   * @param {Object} config - Recipe configuration object
-   */
-  loadConfig(config) {
-    if (config.flavorNames) {
-      this.flavorNames = { ...this.flavorNames, ...config.flavorNames }
-    }
-    if (config.baseNames) {
-      this.baseNames = { ...this.baseNames, ...config.baseNames }
-    }
-    if (config.specialRecipes) {
-      this.specialRecipes = { ...this.specialRecipes, ...config.specialRecipes }
-    }
   }
 
   /**

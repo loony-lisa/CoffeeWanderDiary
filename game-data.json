@@ -102,11 +102,7 @@
         "icon": "🫘",
         "description": "阿拉比卡咖啡豆，香气浓郁",
         "grade": "base",
-        "unlock": true,
-        "properties": {
-          "quality": 3,
-          "price": 10
-        }
+        "unlock": true
       },
       {
         "id": "milk",
@@ -114,11 +110,7 @@
         "icon": "🥛",
         "description": "新鲜的全脂牛奶",
         "grade": "base",
-        "unlock": true,
-        "properties": {
-          "quality": 2,
-          "price": 5
-        }
+        "unlock": true
       },
       {
         "id": "caramel",
@@ -126,11 +118,7 @@
         "icon": "🍯",
         "description": "手工熬制的焦糖",
         "grade": "select",
-        "unlock": false,
-        "properties": {
-          "quality": 4,
-          "price": 25
-        }
+        "unlock": false
       }
     ]
   },
@@ -160,6 +148,45 @@
         }
       }
     ]
+  },
+  "recipeNames": {
+    "flavorNames": {
+      "milk": "Latte",
+      "caramel": "Caramel",
+      "vanilla": "Vanilla",
+      "chocolate": "Mocha",
+      "matcha": "Matcha",
+      "cinnamon": "Cinnamon",
+      "honey": "Honey",
+      "cream": "Cream",
+      "coconut": "Coconut",
+      "mint": "Mint"
+    },
+    "baseNames": {
+      "espresso": "Espresso",
+      "americano": "Americano",
+      "cold_brew": "Cold Brew",
+      "latte_base": "",
+      "mocha_base": "Mocha",
+      "matcha_base": "Matcha",
+      "caramel_base": "Caramel",
+      "vanilla_base": "Vanilla"
+    },
+    "specialRecipes": {
+      "espresso_milk": "Latte",
+      "espresso_caramel": "Caramel Macchiato",
+      "espresso_vanilla": "Vanilla Latte",
+      "espresso_chocolate": "Mocha",
+      "espresso_matcha": "Matcha Latte",
+      "americano_milk": "Americano Latte",
+      "cold_brew_coconut": "Coconut Cold Brew",
+      "cold_brew_mint": "Mint Cold Brew",
+      "latte_base_caramel": "Caramel Latte",
+      "mocha_base_cream": "Cream Mocha",
+      "matcha_base_milk": "Matcha Latte",
+      "caramel_base_cream": "Caramel Cream",
+      "vanilla_base_honey": "Honey Vanilla"
+    }
   },
   "recipes": {
     "version": "1.0.0",

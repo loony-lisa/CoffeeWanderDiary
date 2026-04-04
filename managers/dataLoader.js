@@ -113,7 +113,7 @@ class DataLoader {
       stopProgressSimulation()
 
       // 验证数据结构
-      const requiredKeys = ['base', 'cookbook', 'ingredients', 'tools', 'recipes']
+      const requiredKeys = ['base', 'cookbook', 'ingredients', 'tools', 'recipes', 'recipeNames']
       const missingKeys = requiredKeys.filter((key) => !data[key])
 
       if (missingKeys.length > 0) {
