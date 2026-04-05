@@ -166,29 +166,29 @@
         "unlock": false
       }
     ],
-    "items": [
+    "beans": [
       {
-        "id": "coffee_bean",
-        "name": "咖啡豆",
+        "id": "arabica_bean",
+        "name": "阿拉比卡咖啡豆",
         "icon": "🫘",
-        "description": "阿拉比卡咖啡豆，香气浓郁",
+        "description": "阿拉比卡咖啡豆，香气浓郁，口感柔和",
         "grade": "base",
         "unlock": true
       },
       {
-        "id": "milk",
-        "name": "鲜牛奶",
-        "icon": "🥛",
-        "description": "新鲜的全脂牛奶",
-        "grade": "base",
-        "unlock": true
-      },
-      {
-        "id": "caramel",
-        "name": "焦糖酱",
-        "icon": "🍯",
-        "description": "手工熬制的焦糖",
+        "id": "robusta_bean",
+        "name": "罗巴斯达咖啡豆",
+        "icon": "🫘",
+        "description": "罗巴斯达咖啡豆，咖啡因含量高，口感浓烈",
         "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "geisha_bean",
+        "name": "瑰夏咖啡豆",
+        "icon": "🌸",
+        "description": "珍贵的瑰夏咖啡豆，花香丰富，口感清新",
+        "grade": "premium",
         "unlock": false
       }
     ]
@@ -221,16 +221,6 @@
     ]
   },
   "recipeNames": {
-    "baseNames": {
-      "espresso": "Espresso",
-      "americano": "Americano",
-      "cold_brew": "Cold Brew",
-      "latte_base": "",
-      "mocha_base": "Mocha",
-      "matcha_base": "Matcha",
-      "caramel_base": "Caramel",
-      "vanilla_base": "Vanilla"
-    },
     "specialRecipes": {
       "espresso_milk": "Latte",
       "espresso_caramel": "Caramel Macchiato",

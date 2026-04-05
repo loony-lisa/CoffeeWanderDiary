@@ -22,9 +22,9 @@ class CookbookDataManager {
       ],
       "items": {
         "ingredients": [
-          { "id": "coffee_bean", "name": "Coffee Beans", "icon": "🫘", "description": "Arabica coffee beans, rich aroma", "unlock": true },
-          { "id": "milk", "name": "Fresh Milk", "icon": "🥛", "description": "Fresh whole milk", "unlock": true },
-          { "id": "caramel", "name": "Caramel Sauce", "icon": "🍯", "description": "Handmade caramel", "unlock": false }
+          { "id": "arabica_bean", "name": "Arabica Beans", "icon": "🫘", "description": "Arabica coffee beans, rich aroma and smooth taste", "unlock": true },
+          { "id": "robusta_bean", "name": "Robusta Beans", "icon": "🫘", "description": "Robusta beans, high caffeine, strong taste", "unlock": false },
+          { "id": "geisha_bean", "name": "Geisha Beans", "icon": "🌸", "description": "Precious Geisha beans, rich floral aroma, fresh taste", "unlock": false }
         ],
         "tools": [
           { "id": "grinder", "name": "Hand Grinder", "icon": "⚙️", "description": "Vintage style grinder", "unlock": true },
@@ -91,7 +91,9 @@ class CookbookDataManager {
       return
     }
     
-    if (!itemsData || !itemsData.items || !Array.isArray(itemsData.items)) {
+    // Validate data structure (ingredients uses 'beans', others use 'items')
+    const itemsKey = categoryId === 'ingredients' ? 'beans' : 'items'
+    if (!itemsData || !itemsData[itemsKey] || !Array.isArray(itemsData[itemsKey])) {
       console.warn(`Invalid items data for category: ${categoryId}`)
       return
     }
@@ -101,20 +103,24 @@ class CookbookDataManager {
       this.data.items = {}
     }
     
-    // For ingredients category, also save flavors and bases
+    // For ingredients category, also save flavors, bases and beans
     if (categoryId === 'ingredients') {
       this.data.ingredientsData = itemsData
     }
     
-    // Merge items into the category
-    this.data.items[categoryId] = itemsData.items
+    // Merge items into the category (beans for ingredients, items for others)
+    const itemsToMerge = categoryId === 'ingredients' ? itemsData.beans : itemsData.items
+    this.data.items[categoryId] = itemsToMerge || []
     
     // Auto-unlock default unlocked items from merged data
-    itemsData.items.forEach(item => {
-      if (item.unlock && !this.unlockedItems.has(item.id)) {
-        this.unlockedItems.add(item.id)
-      }
-    })
+    const itemsToUnlock = categoryId === 'ingredients' ? itemsData.beans : itemsData.items
+    if (itemsToUnlock) {
+      itemsToUnlock.forEach(item => {
+        if (item.unlock && !this.unlockedItems.has(item.id)) {
+          this.unlockedItems.add(item.id)
+        }
+      })
+    }
     
     // Also auto-unlock flavors and bases for ingredients
     if (categoryId === 'ingredients') {
@@ -134,7 +140,10 @@ class CookbookDataManager {
       }
     }
     
-    console.log(`Merged ${itemsData.items.length} items into category: ${categoryId}`)
+    const mergedCount = categoryId === 'ingredients' 
+      ? (itemsData.beans ? itemsData.beans.length : 0)
+      : (itemsData.items ? itemsData.items.length : 0)
+    console.log(`Merged ${mergedCount} items into category: ${categoryId}`)
   }
   
   // Save to local cache
@@ -161,11 +170,12 @@ class CookbookDataManager {
     if (!this.isLoaded || !this.data.items) return []
     let items = this.data.items[categoryId] || []
     
-    // For ingredients category, also include flavors and bases
+    // For ingredients category, also include beans, flavors and bases
     if (categoryId === 'ingredients' && this.data.ingredientsData) {
+      const beans = this.data.ingredientsData.beans || []
       const flavors = this.data.ingredientsData.flavors || []
       const bases = this.data.ingredientsData.bases || []
-      items = [...items, ...flavors, ...bases]
+      items = [...beans, ...flavors, ...bases]
     }
     
     // Add unlock status
@@ -191,11 +201,12 @@ class CookbookDataManager {
       }
     }
     
-    // Also search in flavors and bases
+    // Also search in beans, flavors and bases
     if (this.data.ingredientsData) {
+      const beans = this.data.ingredientsData.beans || []
       const flavors = this.data.ingredientsData.flavors || []
       const bases = this.data.ingredientsData.bases || []
-      const item = flavors.find(i => i.id === itemId) || bases.find(i => i.id === itemId)
+      const item = beans.find(i => i.id === itemId) || flavors.find(i => i.id === itemId) || bases.find(i => i.id === itemId)
       if (item) {
         return {
           ...item,
