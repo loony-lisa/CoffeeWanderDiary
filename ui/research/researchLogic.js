@@ -20,13 +20,14 @@ class ResearchLogic {
     }
 
     const base = this.data.getSelectedBaseDetail()
-    const flavor = this.data.getSelectedFlavorDetail()
+    const flavors = this.data.getSelectedFlavorDetails()
+    const flavorIds = flavors.map(f => f.id)
 
     // Use recipe matcher to check if it matches known recipe
-    const result = recipeMatcher.tryResearch(base.id, flavor.id)
+    const result = recipeMatcher.tryResearch(base.id, flavorIds)
 
     // Show result modal
-    this.showResultModal(result, base, flavor)
+    this.showResultModal(result, base, flavors)
 
     return result
   }

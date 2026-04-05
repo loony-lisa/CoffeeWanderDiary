@@ -855,8 +855,11 @@ class CookbookUI {
           this.container.addChild(baseText)
           currentY += 22
         }
-        if (ingredients.flavor) {
-          const flavorText = pixi.createText(`• Flavor: ${ingredients.flavor}`, {
+        if (ingredients.flavor && ingredients.flavor.length > 0) {
+          const flavorList = Array.isArray(ingredients.flavor) 
+            ? ingredients.flavor.join(', ') 
+            : ingredients.flavor
+          const flavorText = pixi.createText(`• Flavor: ${flavorList}`, {
             fontSize: 14,
             fill: 0x666666
           })

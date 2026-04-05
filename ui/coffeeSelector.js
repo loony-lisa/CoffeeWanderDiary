@@ -693,9 +693,9 @@ class CoffeeSelector {
     // Check confirm button
     if (this.isPointInRect(x, y, this.uiElements.confirmBtn)) {
       if (this.uiElements.confirmBtn.enabled) {
-        const selected = this.getSelectedCoffees()
+        const selectedIds = this.getSelectedCoffeeIds()
         this.hide()
-        if (this.onConfirm) this.onConfirm(selected)
+        if (this.onConfirm) this.onConfirm(selectedIds)
       }
       return true
     }

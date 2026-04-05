@@ -222,7 +222,7 @@
         "grade": "base",
         "ingredients": {
           "base": "espresso",
-          "flavor": "water"
+          "flavor": ["water"]
         },
         "unlock": true
       },
@@ -234,7 +234,7 @@
         "grade": "base",
         "ingredients": {
           "base": "espresso",
-          "flavor": "milk"
+          "flavor": ["milk"]
         },
         "unlock": true
       },
@@ -246,7 +246,7 @@
         "grade": "select",
         "ingredients": {
           "base": "espresso",
-          "flavor": "caramel"
+          "flavor": ["caramel"]
         },
         "unlock": false
       },
@@ -258,7 +258,7 @@
         "grade": "select",
         "ingredients": {
           "base": "espresso",
-          "flavor": "vanilla"
+          "flavor": ["vanilla"]
         },
         "unlock": false
       },
@@ -270,7 +270,7 @@
         "grade": "select",
         "ingredients": {
           "base": "espresso",
-          "flavor": "chocolate"
+          "flavor": ["chocolate"]
         },
         "unlock": false
       },
@@ -282,7 +282,7 @@
         "grade": "premium",
         "ingredients": {
           "base": "espresso",
-          "flavor": "matcha"
+          "flavor": ["matcha"]
         },
         "unlock": false
       },
@@ -294,7 +294,7 @@
         "grade": "premium",
         "ingredients": {
           "base": "espresso",
-          "flavor": "cinnamon"
+          "flavor": ["cinnamon"]
         },
         "unlock": false
       },
@@ -305,8 +305,8 @@
         "description": "天然蜂蜜甜，健康之选",
         "grade": "select",
         "ingredients": {
-          "base": "americano",
-          "flavor": "honey"
+          "base": "espresso",
+          "flavor": ["honey"]
         },
         "unlock": false
       },
@@ -318,7 +318,7 @@
         "grade": "premium",
         "ingredients": {
           "base": "cold_brew",
-          "flavor": "coconut"
+          "flavor": ["coconut"]
         },
         "unlock": false
       },
@@ -330,7 +330,7 @@
         "grade": "premium",
         "ingredients": {
           "base": "cold_brew",
-          "flavor": "mint"
+          "flavor": ["mint"]
         },
         "unlock": false
       },
@@ -341,8 +341,8 @@
         "description": "丝滑奶油与巧克力的双重享受",
         "grade": "legendary",
         "ingredients": {
-          "base": "mocha_base",
-          "flavor": "cream"
+          "base": "espresso",
+          "flavor": ["cream", "chocolate"]
         },
         "unlock": false
       }

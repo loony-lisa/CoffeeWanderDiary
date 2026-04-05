@@ -31,26 +31,29 @@ class RecipeMatcher {
   }
 
   /**
-   * Find matching recipe based on base and flavor
+   * Find matching recipe based on base and flavors
    * @param {string} baseId - Base ID
-   * @param {string} flavorId - Flavor ID
+   * @param {string[]} selectedFlavors - Array of selected flavor IDs
    * @returns {Object|null} Matching recipe object, null if not found
    */
-  findRecipe(baseId, flavorId) {
+  findRecipe(baseId, selectedFlavors) {
     return this.recipes.find(recipe => {
-      return recipe.ingredients.base === baseId && 
-             recipe.ingredients.flavor === flavorId
+      if (recipe.ingredients.base !== baseId) return false
+      
+      const recipeFlavors = recipe.ingredients.flavor
+      // Check if selected flavors contains all recipe flavors
+      return recipeFlavors.every(flavor => selectedFlavors.includes(flavor))
     }) || null
   }
 
   /**
    * Try to research new coffee
    * @param {string} baseId - Base ID
-   * @param {string} flavorId - Flavor ID
+   * @param {string[]} selectedFlavors - Array of selected flavor IDs
    * @returns {Object} Research result
    */
-  tryResearch(baseId, flavorId) {
-    const recipe = this.findRecipe(baseId, flavorId)
+  tryResearch(baseId, selectedFlavors) {
+    const recipe = this.findRecipe(baseId, selectedFlavors)
     
     if (!recipe) {
       // No matching recipe found, research failed

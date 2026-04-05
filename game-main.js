@@ -174,14 +174,69 @@ async function initGame() {
     }
   })
   
-  coffeeSelector.setOnConfirm(coffees => {
+  coffeeSelector.setOnConfirm(coffeeIds => {
     // 确认后开始营业
+    // 保存选择的咖啡到游戏状态
+    gameState.setMenuCoffees(coffeeIds)
+    
     const now = new Date().toISOString()
     gameState.openShop()
     gameState.setShopOpenTime(now)
     moneyJar.setShopOpenTime(now)
+    
+    // 计算8小时预期收益（调试用）
+    const recipesData = dataLoader.getData('recipes')
+    const ingredientsData = dataLoader.getData('ingredients')
+    console.log('[DEBUG] coffeeIds:', coffeeIds)
+    console.log('[DEBUG] gameState.getMenuCoffees():', gameState.getMenuCoffees())
+    console.log('[DEBUG] recipesData:', recipesData)
+    console.log('[DEBUG] ingredientsData:', ingredientsData)
+    if (recipesData && recipesData.recipes && ingredientsData) {
+      let revenueResult
+      try {
+        revenueResult = gameState.calculateRevenue(recipesData.recipes, ingredientsData)
+        console.log('[DEBUG] revenueResult:', revenueResult)
+      } catch (e) {
+        console.error('[DEBUG] calculateRevenue 抛出异常:', e)
+        console.error('[DEBUG] gameState:', gameState)
+        console.error('[DEBUG] gameState.carLevel:', gameState ? gameState.carLevel : 'undefined')
+        throw e
+      }
+      
+      // 防御性检查
+      if (!revenueResult || !revenueResult.summary) {
+        console.error('calculateRevenue 返回结果异常:', revenueResult)
+        console.error('gameState:', gameState)
+        console.error('gameState.carLevel:', gameState ? gameState.carLevel : 'undefined')
+      } else {
+        console.log('========== 8小时营业收益预测 ==========')
+        console.log(`咖啡车等级: ${revenueResult.summary.carLevel}`)
+        console.log(`等级系数: ${revenueResult.summary.carLevelCoefficient.toFixed(1)}`)
+        console.log(`菜单咖啡种类: ${revenueResult.summary.menuCount}`)
+        console.log(`每种咖啡销量: ${revenueResult.summary.salesPerCoffee} 杯`)
+        console.log('----------------------------------------')
+        
+        revenueResult.details.forEach((detail, index) => {
+          console.log(`\n[${index + 1}] ${detail.coffeeName} (${detail.grade})`)
+          console.log(`    配方加成: +${detail.calculation.gradeBonus}`)
+          console.log(`    Flavor收益:`)
+          detail.calculation.flavorDetails.forEach(flavor => {
+            console.log(`      - ${flavor.name}: ${flavor.value} (${flavor.grade})`)
+          })
+          console.log(`    Flavor小计: ${detail.calculation.flavorRevenueSum}`)
+          console.log(`    单杯收益: ${detail.calculation.formula}`)
+          console.log(`    销量: ${detail.count} 杯`)
+          console.log(`    小计: ${detail.totalRevenue.toFixed(0)} 金币`)
+        })
+        
+        console.log('----------------------------------------')
+        console.log(`预期总收益: ${revenueResult.totalRevenue} 金币`)
+        console.log('========================================')
+      }
+    }
+    
     wx.showToast({
-      title: `开始营业，售卖 ${coffees.length} 种咖啡`,
+      title: `开始营业，售卖 ${coffeeIds.length} 种咖啡`,
       icon: 'none'
     })
   })
@@ -946,14 +1001,45 @@ function handleShopStatusButtonClick() {
   const carStatus = gameState.getCarStatus()
   
   if (carStatus === 'Open') {
-    // 停止营业
+    // 停止营业 - 根据实际营业时间计算收益
+    const shopOpenTime = gameState.getShopOpenTime()
+    let actualHours = 0
+    if (shopOpenTime) {
+      const openTime = new Date(shopOpenTime)
+      const now = new Date()
+      actualHours = (now - openTime) / (1000 * 60 * 60)
+    }
+    
+    // 计算实际收益（按时间比例，最多8小时）
+    const recipesData = dataLoader.getData('recipes')
+    const ingredientsData = dataLoader.getData('ingredients')
+    let totalCoins = 0
+    
+    if (recipesData && recipesData.recipes && ingredientsData && actualHours > 0) {
+      const revenueResult = gameState.calculateRevenue(recipesData.recipes, ingredientsData)
+      // 按实际营业时间比例计算，最多8小时
+      const ratio = Math.min(actualHours / 8, 1)
+      totalCoins = Math.floor(revenueResult.totalRevenue * ratio)
+    }
+    
+    // 发放金币
+    if (totalCoins > 0) {
+      gameState.addCoins(totalCoins)
+      wx.showToast({
+        title: `营业${actualHours.toFixed(1)}小时，获得 ${totalCoins} 金币`,
+        icon: 'none',
+        duration: 3000
+      })
+    } else {
+      wx.showToast({
+        title: '营业已停止',
+        icon: 'none'
+      })
+    }
+    
     gameState.closeShop()
     gameState.setShopOpenTime(null)
     moneyJar.setShopOpenTime(null)
-    wx.showToast({
-      title: '营业已停止',
-      icon: 'none'
-    })
   } else {
     // 开始营业 - 显示菜单选择页面
     coffeeSelector.show()
@@ -983,12 +1069,21 @@ function checkAutoCloseShop() {
   if (gameState.isShopOpenMaxTime()) {
     console.log(`[自动休息] 营业已满8小时，自动停止营业`)
     
-    // 自动收集金币
-    const coins = moneyJar.collect()
-    if (coins > 0) {
-      gameState.addCoins(coins)
+    // 计算8小时营业收益
+    const recipesData = dataLoader.getData('recipes')
+    const ingredientsData = dataLoader.getData('ingredients')
+    let totalCoins = 0
+    
+    if (recipesData && recipesData.recipes && ingredientsData) {
+      const revenueResult = gameState.calculateRevenue(recipesData.recipes, ingredientsData)
+      totalCoins = revenueResult.totalRevenue
+    }
+    
+    // 发放金币
+    if (totalCoins > 0) {
+      gameState.addCoins(totalCoins)
       wx.showToast({
-        title: `营业8小时，获得 ${coins} 金币`,
+        title: `营业8小时，获得 ${totalCoins} 金币`,
         icon: 'none',
         duration: 3000
       })
@@ -1006,10 +1101,6 @@ gameState.onChange((key, value, oldValue) => {
 })
 
 wx.onHide(() => {
-  // 获取当前选择的咖啡列表
-  const selectedCoffees = coffeeSelector.getSelectedCoffeeIds()
-  gameState.setMenuCoffees(selectedCoffees)
-  
   // 保存游戏状态（包含退出时间戳和营业开始时间）
   gameState.save()
   cookbookDataManager.saveUnlockProgress()

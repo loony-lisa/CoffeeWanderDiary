@@ -60,7 +60,10 @@ class ResearchRenderer {
   }
 
   // Draw scrollable selection area
+  // selectedId can be a single ID or an array of IDs (for multi-select)
   drawScrollableSelectArea(pixi, container, title, options, selectedId, x, y, width, height, scrollOffset) {
+    // Normalize selectedId to array for uniform handling
+    const selectedIds = Array.isArray(selectedId) ? selectedId : (selectedId ? [selectedId] : [])
     // Area title
     const titleText = pixi.createText(title, {
       fontSize: 14,
@@ -124,7 +127,7 @@ class ResearchRenderer {
         return
       }
 
-      const isSelected = selectedId === option.id
+      const isSelected = selectedIds.includes(option.id)
 
       // Option background with border
       const optBg = pixi.createGraphics()
@@ -262,7 +265,7 @@ class ResearchRenderer {
     )
 
     const flavorArea = this.drawScrollableSelectArea(
-      pixi, this.container, 'Flavor', researchData.getFlavorOptions(), researchData.getSelectedFlavor(),
+      pixi, this.container, 'Flavor (multi-select)', researchData.getFlavorOptions(), researchData.getSelectedFlavors(),
       modalX, modalY + 55 + selectAreaHeight + 15, modalWidth, selectAreaHeight,
       scrollState.flavor.offset
     )

@@ -6,7 +6,7 @@ class ResearchData {
   constructor() {
     this.baseOptions = []
     this.selectedBase = null
-    this.selectedFlavor = null
+    this.selectedFlavors = []
     
     // Load base options from base.json
     this.loadBaseOptions()
@@ -54,9 +54,9 @@ class ResearchData {
     return this.selectedBase
   }
 
-  // Get selected flavor
-  getSelectedFlavor() {
-    return this.selectedFlavor
+  // Get selected flavors
+  getSelectedFlavors() {
+    return this.selectedFlavors
   }
 
   // Get selected base details
@@ -70,10 +70,10 @@ class ResearchData {
   }
 
   // Get selected flavor details
-  getSelectedFlavorDetail() {
-    if (!this.selectedFlavor) return null
+  getSelectedFlavorDetails() {
+    if (!this.selectedFlavors || this.selectedFlavors.length === 0) return []
     const flavorOptions = this.getFlavorOptions()
-    return flavorOptions.find(f => f.id === this.selectedFlavor)
+    return this.selectedFlavors.map(id => flavorOptions.find(f => f.id === id)).filter(Boolean)
   }
 
   // Toggle base selection
@@ -82,28 +82,33 @@ class ResearchData {
     return this.selectedBase
   }
 
-  // Toggle flavor selection
+  // Toggle flavor selection (multi-select)
   toggleFlavor(flavorId) {
-    this.selectedFlavor = this.selectedFlavor === flavorId ? null : flavorId
-    return this.selectedFlavor
+    const index = this.selectedFlavors.indexOf(flavorId)
+    if (index > -1) {
+      this.selectedFlavors.splice(index, 1)
+    } else {
+      this.selectedFlavors.push(flavorId)
+    }
+    return this.selectedFlavors
   }
 
   // Check if research can be started
   canStartResearch() {
-    return this.selectedBase !== null && this.selectedFlavor !== null
+    return this.selectedBase !== null && this.selectedFlavors.length > 0
   }
 
   // Reset selection
   reset() {
     this.selectedBase = null
-    this.selectedFlavor = null
+    this.selectedFlavors = []
   }
 
   // Get current selection state
   getState() {
     return {
       selectedBase: this.selectedBase,
-      selectedFlavor: this.selectedFlavor,
+      selectedFlavors: this.selectedFlavors,
       canStart: this.canStartResearch()
     }
   }

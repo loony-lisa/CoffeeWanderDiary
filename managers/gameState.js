@@ -28,6 +28,9 @@ class GameState {
     // Coffee truck status
     this.carStatus = CarStatus.CLOSED  // Default closed
     
+    // Coffee truck level (starts from 1)
+    this.carLevel = 1
+    
     // Location info
     this.currentCity = Cities[0]       // Default Beijing
     
@@ -201,6 +204,30 @@ class GameState {
     return this.carStatus
   }
 
+  // ========== Coffee Truck Level Operations ==========
+
+  // Get coffee truck level
+  getCarLevel() {
+    return this.carLevel
+  }
+
+  // Set coffee truck level
+  setCarLevel(level) {
+    if (level >= 1 && Number.isInteger(level)) {
+      this.carLevel = level
+      this._notifyChange('carLevel', this.carLevel)
+      return true
+    }
+    return false
+  }
+
+  // Level up coffee truck
+  levelUp() {
+    this.carLevel++
+    this._notifyChange('carLevel', this.carLevel)
+    return this.carLevel
+  }
+
   // Whether shop is open
   isOpen() {
     return this.carStatus === CarStatus.OPEN
@@ -268,6 +295,125 @@ class GameState {
     return this.menuCoffees || []
   }
 
+  // ========== Revenue Calculation ==========
+
+  // Calculate 8-hour revenue based on selected menu coffees
+  // Returns: { totalRevenue, details: [{ coffeeId, coffeeName, count, unitRevenue, totalRevenue, calculation }] }
+  calculateRevenue(recipesData, ingredientsData) {
+    const menuCoffees = this.menuCoffees || []
+    const carLevelCoefficient = 1 + 0.1 * this.carLevel
+    
+    console.log('[DEBUG calculateRevenue] menuCoffees:', menuCoffees)
+    console.log('[DEBUG calculateRevenue] recipesData:', recipesData)
+    console.log('[DEBUG calculateRevenue] recipesData.length:', recipesData ? recipesData.length : 'undefined')
+    
+    if (menuCoffees.length === 0) {
+      return { 
+        totalRevenue: 0, 
+        details: [],
+        summary: {
+          carLevel: this.carLevel,
+          carLevelCoefficient: carLevelCoefficient,
+          salesPerCoffee: 100,
+          menuCount: 0
+        }
+      }
+    }
+
+    // Grade value mapping for flavors
+    const flavorGradeValues = {
+      base: 1,
+      select: 2,
+      premium: 3,
+      legendary: 4
+    }
+
+    // Grade bonus mapping for coffee recipes
+    const coffeeGradeBonus = {
+      base: 1,
+      select: 2,
+      premium: 3,
+      legendary: 4
+    }
+
+    const details = []
+    let totalRevenue = 0
+
+    // Each coffee sells 100 cups in 8 hours
+    const salesPerCoffee = 100
+
+    menuCoffees.forEach(coffeeId => {
+      console.log('[DEBUG calculateRevenue] looking for coffeeId:', coffeeId)
+      const recipe = recipesData.find(r => r.id === coffeeId)
+      console.log('[DEBUG calculateRevenue] found recipe:', recipe)
+      if (!recipe) return
+
+      // Calculate flavor revenue sum
+      let flavorRevenueSum = 0
+      const flavorDetails = []
+
+      if (recipe.ingredients && recipe.ingredients.flavor) {
+        recipe.ingredients.flavor.forEach(flavorId => {
+          // Find flavor in ingredients data
+          let flavor = null
+          if (ingredientsData.flavors) {
+            flavor = ingredientsData.flavors.find(f => f.id === flavorId)
+          }
+          
+          const grade = flavor ? flavor.grade : 'base'
+          const value = flavorGradeValues[grade] || 1
+          flavorRevenueSum += value
+          flavorDetails.push({
+            id: flavorId,
+            name: flavor ? flavor.name : flavorId,
+            grade: grade,
+            value: value
+          })
+        })
+      }
+
+      // Get coffee grade bonus
+      const coffeeGrade = recipe.grade || 'base'
+      const gradeBonus = coffeeGradeBonus[coffeeGrade] || 1
+
+      // Calculate unit revenue
+      const unitRevenue = (flavorRevenueSum + gradeBonus) * carLevelCoefficient
+
+      // Calculate total revenue for this coffee (100 cups)
+      const coffeeTotalRevenue = unitRevenue * salesPerCoffee
+
+      totalRevenue += coffeeTotalRevenue
+
+      details.push({
+        coffeeId: coffeeId,
+        coffeeName: recipe.name,
+        grade: coffeeGrade,
+        count: salesPerCoffee,
+        unitRevenue: unitRevenue,
+        totalRevenue: coffeeTotalRevenue,
+        calculation: {
+          flavorRevenueSum: flavorRevenueSum,
+          flavorDetails: flavorDetails,
+          gradeBonus: gradeBonus,
+          carLevel: this.carLevel,
+          carLevelCoefficient: carLevelCoefficient,
+          formula: `(${flavorRevenueSum} + ${gradeBonus}) × ${carLevelCoefficient.toFixed(1)} = ${unitRevenue.toFixed(1)} 金币/杯`
+        }
+      })
+    })
+
+    return {
+      totalRevenue: Math.floor(totalRevenue),
+      details: details,
+      summary: {
+        carLevel: this.carLevel,
+        carLevelCoefficient: carLevelCoefficient,
+        salesPerCoffee: salesPerCoffee,
+        menuCount: menuCoffees.length
+      }
+    }
+  }
+
   // ========== Shop Open Time ==========
   
   // Set shop open time (when shop starts operating)
@@ -297,6 +443,7 @@ class GameState {
       coins: this.coins,
       rubies: this.rubies,
       carStatus: this.carStatus,
+      carLevel: this.carLevel,
       currentCity: this.currentCity,
       menuCoffees: this.menuCoffees || [],
       lastExitTime: new Date().toISOString(),
@@ -314,6 +461,7 @@ class GameState {
         this.coins = data.coins || 0
         this.rubies = data.rubies || 0
         this.carStatus = data.carStatus || CarStatus.CLOSED
+        this.carLevel = data.carLevel || 1
         this.currentCity = data.currentCity || Cities[0]
         this.menuCoffees = data.menuCoffees || []
         this.lastExitTime = data.lastExitTime || null
@@ -335,6 +483,7 @@ class GameState {
       coins: this.coins,
       rubies: this.rubies,
       carStatus: this.carStatus,
+      carLevel: this.carLevel,
       currentCity: this.currentCity,
       menuCoffees: this.menuCoffees || [],
       lastExitTime: this.lastExitTime || null
@@ -346,6 +495,7 @@ class GameState {
     this.coins = 0
     this.rubies = 0
     this.carStatus = CarStatus.CLOSED
+    this.carLevel = 1
     this.currentCity = Cities[0]
     this._notifyChange('reset', this.getState())
   }
