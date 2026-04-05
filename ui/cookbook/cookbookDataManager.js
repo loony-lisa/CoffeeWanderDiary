@@ -41,26 +41,6 @@ class CookbookDataManager {
     this.parseData(defaultData)
   }
   
-  // Load from cloud (supports hot update)
-  loadFromCloud() {
-    return new Promise((resolve, reject) => {
-      wx.request({
-        url: 'https://your-server.com/api/cookbook/latest', // Your server address
-        success: (res) => {
-          if (res.statusCode === 200 && res.data) {
-            this.parseData(res.data)
-            // Cache to local
-            this.saveToLocal()
-            resolve(true)
-          } else {
-            reject(new Error('Invalid cloud data'))
-          }
-        },
-        fail: reject
-      })
-    })
-  }
-  
   // Parse data
   parseData(data) {
     this.data = data
@@ -255,17 +235,6 @@ class CookbookDataManager {
     return { canUnlock: true, reason: '' }
   }
   
-  // Try to unlock (after checking conditions)
-  tryUnlock(itemId, playerState) {
-    const check = this.checkUnlockCondition(itemId, playerState)
-    if (!check.canUnlock) {
-      return { success: false, reason: check.reason }
-    }
-    
-    const success = this.unlockItem(itemId)
-    return { success, reason: success ? '' : 'Unlock failed' }
-  }
-  
   // Save unlock progress
   saveUnlockProgress() {
     try {
@@ -294,41 +263,6 @@ class CookbookDataManager {
   }
 
   // ========== Extended Features ==========
-  
-  // Check for new version
-  async checkUpdate() {
-    if (!this.version) return { hasUpdate: false }
-    
-    try {
-      const res = await new Promise((resolve, reject) => {
-        wx.request({
-          url: 'https://your-server.com/api/cookbook/version',
-          success: resolve,
-          fail: reject
-        })
-      })
-      
-      if (res.data && res.data.version !== this.version) {
-        return {
-          hasUpdate: true,
-          currentVersion: this.version,
-          newVersion: res.data.version,
-          updateLog: res.data.changelog || ''
-        }
-      }
-    } catch (e) {
-      // Failed to check for updates, ignore
-    }
-    
-    return { hasUpdate: false }
-  }
-  
-  // Update item progress (e.g., collection count)
-  updateProgress(itemId, progress) {
-    this.itemProgress[itemId] = progress
-    this.saveUnlockProgress()
-  }
-  
   // Get collection completion rate
   getCompletionRate() {
     if (!this.isLoaded) return { total: 0, unlocked: 0, rate: 0 }

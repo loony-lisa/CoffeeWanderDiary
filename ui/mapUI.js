@@ -2,6 +2,7 @@
 
 const { RESOURCES } = require('../config')
 const { pixiManager } = require('../managers/pixiManager')
+const { getNextPowerOfTwo } = require('../utils/mathUtils')
 
 class MapUI {
   constructor(screenWidth, screenHeight) {
@@ -163,8 +164,8 @@ class MapUI {
         const canvas = wx.createCanvas()
         const origWidth = img.width || 1
         const origHeight = img.height || 1
-        canvas.width = this.getNextPowerOfTwo(origWidth)
-        canvas.height = this.getNextPowerOfTwo(origHeight)
+        canvas.width = getNextPowerOfTwo(origWidth)
+        canvas.height = getNextPowerOfTwo(origHeight)
         
         const ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0)
@@ -194,12 +195,6 @@ class MapUI {
       console.log(`Failed to load image: ${path}`)
     }
     img.src = path
-  }
-  
-  getNextPowerOfTwo(n) {
-    if (n <= 1) return 1
-    if ((n & (n - 1)) === 0) return n
-    return Math.pow(2, Math.ceil(Math.log2(n)))
   }
   
   drawImage(pixi, container, name, x, y, width, height) {
@@ -716,16 +711,6 @@ class MapUI {
     
     // Clicked inside modal (but not on buttons)
     return true
-  }
-  
-  getDirectionText(direction) {
-    const texts = {
-      up: '上',
-      down: '下',
-      left: '左',
-      right: '右'
-    }
-    return texts[direction] || direction
   }
   
   isPointInRect(x, y, rect) {

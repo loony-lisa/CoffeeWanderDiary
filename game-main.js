@@ -43,8 +43,8 @@ const bgImages = {
 }
 
 const statusIcons = {
-  bill: null,
-  diamond: null
+  coin: null,
+  ruby: null
 }
 
 // 精灵图动画

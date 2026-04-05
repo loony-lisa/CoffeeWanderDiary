@@ -3,6 +3,7 @@
 const { RESOURCES } = require('../config')
 const { cookbookDataManager } = require('./cookbook/cookbookDataManager')
 const { pixiManager } = require('../managers/pixiManager')
+const { getNextPowerOfTwo } = require('../utils/mathUtils')
 
 class CoffeeSelector {
   constructor(screenWidth, screenHeight) {
@@ -213,8 +214,8 @@ class CoffeeSelector {
         const canvas = wx.createCanvas()
         const origWidth = img.width || 1
         const origHeight = img.height || 1
-        canvas.width = this.getNextPowerOfTwo(origWidth)
-        canvas.height = this.getNextPowerOfTwo(origHeight)
+        canvas.width = getNextPowerOfTwo(origWidth)
+        canvas.height = getNextPowerOfTwo(origHeight)
         
         const ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0)
@@ -245,12 +246,6 @@ class CoffeeSelector {
       console.log(`Failed to load coffee image: ${imagePath}`)
     }
     img.src = imagePath
-  }
-  
-  getNextPowerOfTwo(n) {
-    if (n <= 1) return 1
-    if ((n & (n - 1)) === 0) return n // 已经是 2 的幂次方
-    return Math.pow(2, Math.ceil(Math.log2(n)))
   }
   
   drawCoffeeImage(pixi, container, itemId, x, y, size) {

@@ -18,33 +18,6 @@ class RecipeManager {
     }
   }
 
-  /**
-   * Add special recipe
-   * @param {string} baseId - Base ID
-   * @param {string} flavorId - Flavor ID
-   * @param {string} recipeName - Recipe name
-   */
-  addSpecialRecipe(baseId, flavorId, recipeName) {
-    const key = `${baseId}_${flavorId}`
-    this.specialRecipes[key] = recipeName
-  }
-
-  /**
-   * Get all special recipes
-   */
-  getSpecialRecipes() {
-    return { ...this.specialRecipes }
-  }
-
-  /**
-   * Check if there's a special recipe
-   * @param {string} baseId 
-   * @param {string} flavorId 
-   */
-  hasSpecialRecipe(baseId, flavorId) {
-    const key = `${baseId}_${flavorId}`
-    return !!this.specialRecipes[key]
-  }
 }
 
 // Export singleton

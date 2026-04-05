@@ -1,7 +1,6 @@
 // researchLogic.js - Research System Business Logic Module
 
 const { recipeMatcher } = require('../../managers/recipeMatcher')
-const { cookbookDataManager } = require('../cookbook/cookbookDataManager')
 
 class ResearchLogic {
   constructor(researchData) {

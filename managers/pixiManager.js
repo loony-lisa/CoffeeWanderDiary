@@ -251,14 +251,9 @@ class PixiManager {
     return new PIXI.Sprite(texture)
   }
 
-  // 获取下一个 2 的幂次方
-  getNextPowerOfTwo(n) {
-    if (n <= 1) return 1
-    if ((n & (n - 1)) === 0) return n // 已经是 2 的幂次方
-    return Math.pow(2, Math.ceil(Math.log2(n)))
-  }
-
   async loadTexture(path) {
+    const { getNextPowerOfTwo } = require('../utils/mathUtils')
+    
     if (this.textureCache.has(path)) {
       return this.textureCache.get(path)
     }
@@ -285,8 +280,8 @@ class PixiManager {
           // 将 canvas 尺寸调整为 2 的幂次方，避免 WebGL NPOT 纹理限制
           const origWidth = img.width || 1
           const origHeight = img.height || 1
-          canvas.width = this.getNextPowerOfTwo(origWidth)
-          canvas.height = this.getNextPowerOfTwo(origHeight)
+          canvas.width = getNextPowerOfTwo(origWidth)
+          canvas.height = getNextPowerOfTwo(origHeight)
           
           const ctx = canvas.getContext('2d')
           ctx.drawImage(img, 0, 0)
@@ -315,40 +310,6 @@ class PixiManager {
       }
       img.src = path
     })
-  }
-
-  drawRect(graphics, x, y, width, height, color, alpha = 1) {
-    graphics.beginFill(color, alpha)
-    graphics.drawRect(x, y, width, height)
-    graphics.endFill()
-    return graphics
-  }
-
-  drawRoundedRect(graphics, x, y, width, height, radius, color, alpha = 1) {
-    graphics.beginFill(color, alpha)
-    graphics.drawRoundedRect(x, y, width, height, radius)
-    graphics.endFill()
-    return graphics
-  }
-
-  drawCircle(graphics, x, y, radius, color, alpha = 1) {
-    graphics.beginFill(color, alpha)
-    graphics.drawCircle(x, y, radius)
-    graphics.endFill()
-    return graphics
-  }
-
-  drawLine(graphics, x1, y1, x2, y2, color, width = 1) {
-    graphics.lineStyle(width, color)
-    graphics.moveTo(x1, y1)
-    graphics.lineTo(x2, y2)
-    return graphics
-  }
-
-  drawBorder(graphics, x, y, width, height, color, lineWidth = 1) {
-    graphics.lineStyle(lineWidth, color)
-    graphics.drawRect(x, y, width, height)
-    return graphics
   }
 
   hitTest(x, y, rect) {

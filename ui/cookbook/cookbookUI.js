@@ -2,6 +2,7 @@
 
 const { RESOURCES } = require('../../config')
 const { pixiManager } = require('../../managers/pixiManager')
+const { getNextPowerOfTwo } = require('../../utils/mathUtils')
 
 class CookbookUI {
   constructor(screenWidth, screenHeight) {
@@ -529,37 +530,6 @@ class CookbookUI {
     icon.y = y + 22
     container.addChild(icon)
   }
-
-  // Draw coffee image (legacy method for detail modal)
-  drawCoffeeImage(pixi, container, item, x, y, width, height) {
-    const imageSize = 32
-    const imageX = Math.floor(x + (width - imageSize) / 2)
-    const imageY = Math.floor(y + 4)
-    
-    // Check cache first
-    const cached = this.imageCache.get(item.id)
-    if (cached && cached.texture) {
-      const sprite = pixi.createSprite(cached.texture)
-      sprite.x = imageX
-      sprite.y = imageY
-      sprite.width = imageSize
-      sprite.height = imageSize
-      container.addChild(sprite)
-      return
-    }
-    
-    if (cached && cached.error) {
-      this.drawPinkPlaceholder(pixi, container, imageX, imageY, imageSize)
-      return
-    }
-    
-    if (!cached) {
-      this.loadItemImage(item.id)
-    }
-    
-    // Draw placeholder while loading
-    this.drawPinkPlaceholder(pixi, container, imageX, imageY, imageSize)
-  }
   
   // Load item image
   loadItemImage(itemId) {
@@ -591,8 +561,8 @@ class CookbookUI {
         const canvas = wx.createCanvas()
         const origWidth = img.width || 1
         const origHeight = img.height || 1
-        canvas.width = this.getNextPowerOfTwo(origWidth)
-        canvas.height = this.getNextPowerOfTwo(origHeight)
+        canvas.width = getNextPowerOfTwo(origWidth)
+        canvas.height = getNextPowerOfTwo(origHeight)
         
         const ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0)
@@ -651,13 +621,6 @@ class CookbookUI {
     return false
   }
   
-  // 获取下一个 2 的幂次方
-  getNextPowerOfTwo(n) {
-    if (n <= 1) return 1
-    if ((n & (n - 1)) === 0) return n // 已经是 2 的幂次方
-    return Math.pow(2, Math.ceil(Math.log2(n)))
-  }
-
   // Draw pink placeholder
   drawPinkPlaceholder(pixi, container, x, y, size) {
     const placeholder = pixi.createGraphics()

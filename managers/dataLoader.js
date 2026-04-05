@@ -153,14 +153,6 @@ class DataLoader {
   hasData(key) {
     return !!this.loadedData[key]
   }
-
-  // Note: drawLoadingScreen is now handled by PixiJS in game.js
-  // This method is kept for compatibility but does nothing
-  drawLoadingScreen(ctx, screenWidth, screenHeight) {
-    // Loading screen is now rendered by PixiJS in game.js
-    // This method is deprecated and kept for backward compatibility
-    console.log('drawLoadingScreen is deprecated, use PixiJS rendering instead')
-  }
 }
 
 // Export singleton
