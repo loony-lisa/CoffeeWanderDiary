@@ -1,9 +1,8 @@
 // game-main.js - 游戏主逻辑
 
 const { RESOURCES } = require('./config')
-const { gameState, CarStatus } = require('./managers/gameState')
+const { gameState } = require('./managers/gameState')
 const { dataLoader } = require('./managers/dataLoader')
-const { recipeManager } = require('./managers/recipeManager')
 const { cookbookDataManager } = require('./ui/cookbook/cookbookDataManager')
 const { CookbookUI } = require('./ui/cookbook/cookbookUI')
 const { ResearchUI } = require('./ui/researchUI')
@@ -132,11 +131,6 @@ async function initGame() {
     if (data.recipes) {
       researchUI.setRecipesData(data.recipes)
       cookbookUI.setRecipesData(data.recipes)
-    }
-    
-    // Load recipe names configuration
-    if (data.recipeNames) {
-      recipeManager.loadConfig(data.recipeNames)
     }
     
     isGameReady = true

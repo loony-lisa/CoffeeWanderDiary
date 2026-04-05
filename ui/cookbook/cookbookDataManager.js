@@ -71,58 +71,61 @@ class CookbookDataManager {
       return
     }
     
-    // Validate data structure (ingredients uses 'beans', others use 'items')
-    const itemsKey = categoryId === 'ingredients' ? 'beans' : 'items'
-    if (!itemsData || !itemsData[itemsKey] || !Array.isArray(itemsData[itemsKey])) {
-      console.warn(`Invalid items data for category: ${categoryId}`)
-      return
-    }
-    
     // Initialize items object if not exists
     if (!this.data.items) {
       this.data.items = {}
     }
     
-    // For ingredients category, also save flavors, bases and beans
+    // For ingredients category, check if beans, flavors, bases, or items exist
     if (categoryId === 'ingredients') {
+      // check if items exists
+      const hasIngredients = itemsData && (
+        (itemsData.bases && Array.isArray(itemsData.bases)) ||
+        (itemsData.beans && Array.isArray(itemsData.beans)) ||
+        (itemsData.flavors && Array.isArray(itemsData.flavors))
+      )
+      if (!hasIngredients) {
+        console.warn(`Invalid ingredients data: no beans, flavors, bases, or items array`)
+        return
+      }
+      
+      // For ingredients category, save the entire data for getItemsByCategory to use
       this.data.ingredientsData = itemsData
+      
+      // Merge beans, flavors, and items (bases are not displayed in cookbook)
+      const beans = itemsData.beans || []
+      const flavors = itemsData.flavors || []
+      const items = itemsData.items || []
+      this.data.items[categoryId] = [...beans, ...flavors, ...items]
+    } else {
+      // For other categories, check if items exists
+      if (!itemsData || !itemsData.items || !Array.isArray(itemsData.items)) {
+        console.warn(`Invalid items data for category: ${categoryId}`)
+        return
+      }
+      
+      // Merge items into the category
+      this.data.items[categoryId] = itemsData.items || []
     }
     
-    // Merge items into the category (beans for ingredients, items for others)
-    const itemsToMerge = categoryId === 'ingredients' ? itemsData.beans : itemsData.items
-    this.data.items[categoryId] = itemsToMerge || []
+    // Auto-unlock default unlocked items and calculate merged count
+    const unlockFields = categoryId === 'ingredients' 
+      ? ['beans', 'flavors', 'items'] 
+      : ['items']
     
-    // Auto-unlock default unlocked items from merged data
-    const itemsToUnlock = categoryId === 'ingredients' ? itemsData.beans : itemsData.items
-    if (itemsToUnlock) {
-      itemsToUnlock.forEach(item => {
-        if (item.unlock && !this.unlockedItems.has(item.id)) {
-          this.unlockedItems.add(item.id)
-        }
-      })
-    }
-    
-    // Also auto-unlock flavors and bases for ingredients
-    if (categoryId === 'ingredients') {
-      if (itemsData.flavors) {
-        itemsData.flavors.forEach(item => {
+    let mergedCount = 0
+    for (const field of unlockFields) {
+      const items = itemsData[field]
+      if (items && Array.isArray(items)) {
+        mergedCount += items.length
+        items.forEach(item => {
           if (item.unlock && !this.unlockedItems.has(item.id)) {
             this.unlockedItems.add(item.id)
           }
         })
       }
-      if (itemsData.bases) {
-        itemsData.bases.forEach(item => {
-          if (item.unlock && !this.unlockedItems.has(item.id)) {
-            this.unlockedItems.add(item.id)
-          }
-        })
-      }
     }
     
-    const mergedCount = categoryId === 'ingredients' 
-      ? (itemsData.beans ? itemsData.beans.length : 0)
-      : (itemsData.items ? itemsData.items.length : 0)
     console.log(`Merged ${mergedCount} items into category: ${categoryId}`)
   }
   
@@ -150,12 +153,12 @@ class CookbookDataManager {
     if (!this.isLoaded || !this.data.items) return []
     let items = this.data.items[categoryId] || []
     
-    // For ingredients category, also include beans, flavors and bases
+    // For ingredients category, also include beans, flavors and items (bases are not displayed)
     if (categoryId === 'ingredients' && this.data.ingredientsData) {
       const beans = this.data.ingredientsData.beans || []
       const flavors = this.data.ingredientsData.flavors || []
-      const bases = this.data.ingredientsData.bases || []
-      items = [...beans, ...flavors, ...bases]
+      const itemsList = this.data.ingredientsData.items || []
+      items = [...beans, ...flavors, ...itemsList]
     }
     
     // Add unlock status
@@ -181,12 +184,14 @@ class CookbookDataManager {
       }
     }
     
-    // Also search in beans, flavors and bases
+    // Also search in beans, flavors and items (bases are not displayed in cookbook)
     if (this.data.ingredientsData) {
       const beans = this.data.ingredientsData.beans || []
       const flavors = this.data.ingredientsData.flavors || []
-      const bases = this.data.ingredientsData.bases || []
-      const item = beans.find(i => i.id === itemId) || flavors.find(i => i.id === itemId) || bases.find(i => i.id === itemId)
+      const items = this.data.ingredientsData.items || []
+      const item = beans.find(i => i.id === itemId) || 
+                   flavors.find(i => i.id === itemId) || 
+                   items.find(i => i.id === itemId)
       if (item) {
         return {
           ...item,
@@ -200,7 +205,6 @@ class CookbookDataManager {
   }
   
   // ========== Unlock System ==========
-  
   // Unlock item
   unlockItem(itemId) {
     const item = this.getItem(itemId)
@@ -281,7 +285,6 @@ class CookbookDataManager {
   }
   
   // ========== Dynamic Coffee Addition ==========
-  
   /**
    * Add new coffee to cookbook
    * @param {Object} coffeeData - Coffee data

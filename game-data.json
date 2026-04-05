@@ -57,15 +57,6 @@
         "unlock": true
       },
       {
-        "id": "americano",
-        "name": "美式咖啡",
-        "icon": "🍮",
-        "description": "美式咖啡是浓缩咖啡加热水稀释，口感更清淡顺滑，接近黑咖啡。",
-        "grade": "select",
-        "tools": ["espresso_machine"],
-        "unlock": true
-      },
-      {
         "id": "cold_brew",
         "name": "冷萃咖啡",
         "icon": "🧊",
@@ -84,88 +75,6 @@
         "unlock": false
       }
     ],
-    "flavors": [
-      {
-        "id": "milk",
-        "name": "Milk",
-        "icon": "🥛",
-        "description": "增添牛奶香气和顺滑口感",
-        "grade": "base",
-        "unlock": true
-      },
-      {
-        "id": "caramel",
-        "name": "Caramel",
-        "icon": "🍯",
-        "description": "甜蜜焦糖风味",
-        "grade": "base",
-        "unlock": true
-      },
-      {
-        "id": "vanilla",
-        "name": "Vanilla",
-        "icon": "🌿",
-        "description": "香草芬芳",
-        "grade": "base",
-        "unlock": true
-      },
-      {
-        "id": "chocolate",
-        "name": "Chocolate",
-        "icon": "🍫",
-        "description": "浓郁巧克力",
-        "grade": "base",
-        "unlock": false
-      },
-      {
-        "id": "matcha",
-        "name": "Matcha",
-        "icon": "🍃",
-        "description": "日式抹茶风味",
-        "grade": "select",
-        "unlock": false
-      },
-      {
-        "id": "cinnamon",
-        "name": "Cinnamon",
-        "icon": "🍂",
-        "description": "温暖肉桂香气",
-        "grade": "select",
-        "unlock": false
-      },
-      {
-        "id": "honey",
-        "name": "Honey",
-        "icon": "🐝",
-        "description": "天然蜂蜜甜香",
-        "grade": "select",
-        "unlock": false
-      },
-      {
-        "id": "cream",
-        "name": "Cream",
-        "icon": "🍦",
-        "description": "丝滑奶油",
-        "grade": "premium",
-        "unlock": false
-      },
-      {
-        "id": "coconut",
-        "name": "Coconut",
-        "icon": "🥥",
-        "description": "热带椰香",
-        "grade": "premium",
-        "unlock": false
-      },
-      {
-        "id": "mint",
-        "name": "Mint",
-        "icon": "🌱",
-        "description": "清凉薄荷",
-        "grade": "premium",
-        "unlock": false
-      }
-    ],
     "beans": [
       {
         "id": "arabica_bean",
@@ -180,7 +89,7 @@
         "name": "罗巴斯达咖啡豆",
         "icon": "🫘",
         "description": "罗巴斯达咖啡豆，咖啡因含量高，口感浓烈",
-        "grade": "select",
+        "grade": "base",
         "unlock": false
       },
       {
@@ -188,6 +97,88 @@
         "name": "瑰夏咖啡豆",
         "icon": "🌸",
         "description": "珍贵的瑰夏咖啡豆，花香丰富，口感清新",
+        "grade": "premium",
+        "unlock": false
+      }
+    ],
+    "flavors": [
+      {
+        "id": "milk",
+        "name": "牛奶",
+        "icon": "🥛",
+        "description": "增添牛奶香气和顺滑口感",
+        "grade": "base",
+        "unlock": true
+      },
+      {
+        "id": "caramel",
+        "name": "焦糖",
+        "icon": "🍯",
+        "description": "甜蜜焦糖风味",
+        "grade": "base",
+        "unlock": true
+      },
+      {
+        "id": "vanilla",
+        "name": "香草",
+        "icon": "🌿",
+        "description": "香草芬芳",
+        "grade": "base",
+        "unlock": true
+      },
+      {
+        "id": "chocolate",
+        "name": "巧克力",
+        "icon": "🍫",
+        "description": "浓郁巧克力",
+        "grade": "base",
+        "unlock": false
+      },
+      {
+        "id": "matcha",
+        "name": "抹茶",
+        "icon": "🍃",
+        "description": "日式抹茶风味",
+        "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "cinnamon",
+        "name": "肉桂",
+        "icon": "🍂",
+        "description": "温暖肉桂香气",
+        "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "honey",
+        "name": "蜂蜜",
+        "icon": "🐝",
+        "description": "天然蜂蜜甜香",
+        "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "cream",
+        "name": "奶油",
+        "icon": "🍦",
+        "description": "丝滑奶油",
+        "grade": "premium",
+        "unlock": false
+      },
+      {
+        "id": "coconut",
+        "name": "椰浆",
+        "icon": "🥥",
+        "description": "热带椰香",
+        "grade": "premium",
+        "unlock": false
+      },
+      {
+        "id": "mint",
+        "name": "薄荷",
+        "icon": "🌱",
+        "description": "清凉薄荷",
         "grade": "premium",
         "unlock": false
       }
@@ -219,23 +210,6 @@
         }
       }
     ]
-  },
-  "recipeNames": {
-    "specialRecipes": {
-      "espresso_milk": "Latte",
-      "espresso_caramel": "Caramel Macchiato",
-      "espresso_vanilla": "Vanilla Latte",
-      "espresso_chocolate": "Mocha",
-      "espresso_matcha": "Matcha Latte",
-      "americano_milk": "Americano Latte",
-      "cold_brew_coconut": "Coconut Cold Brew",
-      "cold_brew_mint": "Mint Cold Brew",
-      "latte_base_caramel": "Caramel Latte",
-      "mocha_base_cream": "Cream Mocha",
-      "matcha_base_milk": "Matcha Latte",
-      "caramel_base_cream": "Caramel Cream",
-      "vanilla_base_honey": "Honey Vanilla"
-    }
   },
   "recipes": {
     "version": "1.0.0",

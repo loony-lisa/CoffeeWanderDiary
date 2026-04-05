@@ -28,7 +28,7 @@ class ResearchRenderer {
 
   // Draw title
   drawTitle(pixi, container, modalX, modalY, modalWidth) {
-    const title = pixi.createText('🔬 Research New Coffee', {
+    const title = pixi.createText('新品研发', {
       fontSize: 20,
       fontWeight: 'bold',
       fill: 0x333333
@@ -256,7 +256,7 @@ class ResearchRenderer {
     const closeBtn = this.drawCloseButton(pixi, this.container, modalX, modalY, modalWidth)
 
     const baseArea = this.drawScrollableSelectArea(
-      pixi, this.container, 'Coffee Base', researchData.getBaseOptions(), researchData.getSelectedBase(),
+      pixi, this.container, '基底制作方法', researchData.getBaseOptions(), researchData.getSelectedBase(),
       modalX, modalY + 55, modalWidth, selectAreaHeight,
       scrollState.base.offset
     )
