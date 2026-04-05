@@ -2,24 +2,9 @@
 
 const { dataLoader } = require('../../managers/dataLoader')
 
-// Flavor options
-const FLAVOR_OPTIONS = [
-  { id: 'milk', name: 'Milk', icon: '🥛', desc: 'Adds milky aroma and smoothness' },
-  { id: 'caramel', name: 'Caramel', icon: '🍯', desc: 'Sweet caramel flavor' },
-  { id: 'vanilla', name: 'Vanilla', icon: '🌿', desc: 'Vanilla aroma' },
-  { id: 'chocolate', name: 'Chocolate', icon: '🍫', desc: 'Rich chocolate' },
-  { id: 'matcha', name: 'Matcha', icon: '🍃', desc: 'Japanese matcha flavor' },
-  { id: 'cinnamon', name: 'Cinnamon', icon: '🍂', desc: 'Warm cinnamon scent' },
-  { id: 'honey', name: 'Honey', icon: '🐝', desc: 'Natural honey sweetness' },
-  { id: 'cream', name: 'Cream', icon: '🍦', desc: 'Silky cream' },
-  { id: 'coconut', name: 'Coconut', icon: '🥥', desc: 'Tropical coconut aroma' },
-  { id: 'mint', name: 'Mint', icon: '🌱', desc: 'Cool mint' }
-]
-
 class ResearchData {
   constructor() {
     this.baseOptions = []
-    this.flavorOptions = FLAVOR_OPTIONS
     this.selectedBase = null
     this.selectedFlavor = null
     
@@ -27,12 +12,12 @@ class ResearchData {
     this.loadBaseOptions()
   }
   
-  // Load base options from base.json (only unlocked bases)
+  // Load base options from ingredients.bases (only unlocked bases)
   loadBaseOptions() {
-    const baseData = dataLoader.getData('base')
-    if (baseData && baseData.bases) {
+    const ingredientsData = dataLoader.getData('ingredients')
+    if (ingredientsData && ingredientsData.bases) {
       // Filter only unlocked bases
-      this.baseOptions = baseData.bases
+      this.baseOptions = ingredientsData.bases
         .filter(base => base.unlock === true)
         .map(base => ({
           id: base.id,
@@ -57,7 +42,11 @@ class ResearchData {
 
   // Get all flavor options
   getFlavorOptions() {
-    return this.flavorOptions
+    const ingredientsData = dataLoader.getData('ingredients')
+    if (ingredientsData && ingredientsData.flavors) {
+      return ingredientsData.flavors
+    }
+    return []
   }
 
   // Get selected base
@@ -83,7 +72,8 @@ class ResearchData {
   // Get selected flavor details
   getSelectedFlavorDetail() {
     if (!this.selectedFlavor) return null
-    return this.flavorOptions.find(f => f.id === this.selectedFlavor)
+    const flavorOptions = this.getFlavorOptions()
+    return flavorOptions.find(f => f.id === this.selectedFlavor)
   }
 
   // Toggle base selection

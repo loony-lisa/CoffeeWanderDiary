@@ -101,6 +101,11 @@ class CookbookDataManager {
       this.data.items = {}
     }
     
+    // For ingredients category, also save flavors and bases
+    if (categoryId === 'ingredients') {
+      this.data.ingredientsData = itemsData
+    }
+    
     // Merge items into the category
     this.data.items[categoryId] = itemsData.items
     
@@ -110,6 +115,24 @@ class CookbookDataManager {
         this.unlockedItems.add(item.id)
       }
     })
+    
+    // Also auto-unlock flavors and bases for ingredients
+    if (categoryId === 'ingredients') {
+      if (itemsData.flavors) {
+        itemsData.flavors.forEach(item => {
+          if (item.unlock && !this.unlockedItems.has(item.id)) {
+            this.unlockedItems.add(item.id)
+          }
+        })
+      }
+      if (itemsData.bases) {
+        itemsData.bases.forEach(item => {
+          if (item.unlock && !this.unlockedItems.has(item.id)) {
+            this.unlockedItems.add(item.id)
+          }
+        })
+      }
+    }
     
     console.log(`Merged ${itemsData.items.length} items into category: ${categoryId}`)
   }
@@ -136,7 +159,14 @@ class CookbookDataManager {
   // Get all items in a category
   getItemsByCategory(categoryId) {
     if (!this.isLoaded || !this.data.items) return []
-    const items = this.data.items[categoryId] || []
+    let items = this.data.items[categoryId] || []
+    
+    // For ingredients category, also include flavors and bases
+    if (categoryId === 'ingredients' && this.data.ingredientsData) {
+      const flavors = this.data.ingredientsData.flavors || []
+      const bases = this.data.ingredientsData.bases || []
+      items = [...items, ...flavors, ...bases]
+    }
     
     // Add unlock status
     return items.map(item => ({
@@ -160,6 +190,21 @@ class CookbookDataManager {
         }
       }
     }
+    
+    // Also search in flavors and bases
+    if (this.data.ingredientsData) {
+      const flavors = this.data.ingredientsData.flavors || []
+      const bases = this.data.ingredientsData.bases || []
+      const item = flavors.find(i => i.id === itemId) || bases.find(i => i.id === itemId)
+      if (item) {
+        return {
+          ...item,
+          isUnlocked: this.unlockedItems.has(itemId),
+          progress: this.itemProgress[itemId] || 0
+        }
+      }
+    }
+    
     return null
   }
   

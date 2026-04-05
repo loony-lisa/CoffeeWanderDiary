@@ -1,53 +1,4 @@
 {
-  "base": {
-    "version": "1.0.0",
-    "bases": [
-      {
-        "id": "espresso",
-        "name": "意式浓缩",
-        "icon": "☕",
-        "description": "浓缩咖啡是一种通过高压热水快速萃取咖啡豆精华制成的、口感浓郁醇厚的意式咖啡基底。",
-        "grade": "base",
-        "tools": [
-          "espresso_machine"
-        ],
-        "unlock": true
-      },
-      {
-        "id": "americano",
-        "name": "美式咖啡",
-        "icon": "🍮",
-        "description": "美式咖啡是浓缩咖啡加热水稀释，口感更清淡顺滑，接近黑咖啡。",
-        "grade": "select",
-        "tools": [
-          "espresso_machine"
-        ],
-        "unlock": true
-      },
-      {
-        "id": "cold_brew",
-        "name": "冷萃咖啡",
-        "icon": "🧊",
-        "description": "用冷水长时间浸泡，口感顺滑、低酸、风味醇厚。",
-        "grade": "base",
-        "tools": [
-          "cold_brew_pot"
-        ],
-        "unlock": false
-      },
-      {
-        "id": "pour_over",
-        "name": "手冲咖啡",
-        "icon": "☕",
-        "description": "用热水缓慢萃取的黑咖啡，口感干净、风味清晰，是很多精品咖啡的基底。",
-        "grade": "base",
-        "tools": [
-          "pour_over_set"
-        ],
-        "unlock": false
-      }
-    ]
-  },
   "cookbook": {
     "version": "1.0.0",
     "categories": [
@@ -95,6 +46,126 @@
   },
   "ingredients": {
     "version": "1.0.0",
+      "bases": [
+      {
+        "id": "espresso",
+        "name": "意式浓缩",
+        "icon": "☕",
+        "description": "浓缩咖啡是一种通过高压热水快速萃取咖啡豆精华制成的、口感浓郁醇厚的意式咖啡基底。",
+        "grade": "base",
+        "tools": ["espresso_machine"],
+        "unlock": true
+      },
+      {
+        "id": "americano",
+        "name": "美式咖啡",
+        "icon": "🍮",
+        "description": "美式咖啡是浓缩咖啡加热水稀释，口感更清淡顺滑，接近黑咖啡。",
+        "grade": "select",
+        "tools": ["espresso_machine"],
+        "unlock": true
+      },
+      {
+        "id": "cold_brew",
+        "name": "冷萃咖啡",
+        "icon": "🧊",
+        "description": "用冷水长时间浸泡，口感顺滑、低酸、风味醇厚。",
+        "grade": "base",
+        "tools": ["cold_brew_pot"],
+        "unlock": false
+      },
+      {
+        "id": "pour_over",
+        "name": "手冲咖啡",
+        "icon": "☕",
+        "description": "用热水缓慢萃取的黑咖啡，口感干净、风味清晰，是很多精品咖啡的基底。",
+        "grade": "base",
+        "tools": ["pour_over_set"],
+        "unlock": false
+      }
+    ],
+    "flavors": [
+      {
+        "id": "milk",
+        "name": "Milk",
+        "icon": "🥛",
+        "description": "增添牛奶香气和顺滑口感",
+        "grade": "base",
+        "unlock": true
+      },
+      {
+        "id": "caramel",
+        "name": "Caramel",
+        "icon": "🍯",
+        "description": "甜蜜焦糖风味",
+        "grade": "base",
+        "unlock": true
+      },
+      {
+        "id": "vanilla",
+        "name": "Vanilla",
+        "icon": "🌿",
+        "description": "香草芬芳",
+        "grade": "base",
+        "unlock": true
+      },
+      {
+        "id": "chocolate",
+        "name": "Chocolate",
+        "icon": "🍫",
+        "description": "浓郁巧克力",
+        "grade": "base",
+        "unlock": false
+      },
+      {
+        "id": "matcha",
+        "name": "Matcha",
+        "icon": "🍃",
+        "description": "日式抹茶风味",
+        "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "cinnamon",
+        "name": "Cinnamon",
+        "icon": "🍂",
+        "description": "温暖肉桂香气",
+        "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "honey",
+        "name": "Honey",
+        "icon": "🐝",
+        "description": "天然蜂蜜甜香",
+        "grade": "select",
+        "unlock": false
+      },
+      {
+        "id": "cream",
+        "name": "Cream",
+        "icon": "🍦",
+        "description": "丝滑奶油",
+        "grade": "premium",
+        "unlock": false
+      },
+      {
+        "id": "coconut",
+        "name": "Coconut",
+        "icon": "🥥",
+        "description": "热带椰香",
+        "grade": "premium",
+        "unlock": false
+      },
+      {
+        "id": "mint",
+        "name": "Mint",
+        "icon": "🌱",
+        "description": "清凉薄荷",
+        "grade": "premium",
+        "unlock": false
+      }
+    ],
     "items": [
       {
         "id": "coffee_bean",
@@ -150,18 +221,6 @@
     ]
   },
   "recipeNames": {
-    "flavorNames": {
-      "milk": "Latte",
-      "caramel": "Caramel",
-      "vanilla": "Vanilla",
-      "chocolate": "Mocha",
-      "matcha": "Matcha",
-      "cinnamon": "Cinnamon",
-      "honey": "Honey",
-      "cream": "Cream",
-      "coconut": "Coconut",
-      "mint": "Mint"
-    },
     "baseNames": {
       "espresso": "Espresso",
       "americano": "Americano",
